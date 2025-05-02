@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhiệm vụ trên hành tinh Xerath</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #0a0a1a;
+            color: #c0c0ff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            background-color: #1a1a2a;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 255, 0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #ff55ff;
+            text-shadow: 0 0 5px #ff55ff;
+        }
+        .story-text {
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        .dialogue {
+            background-color: #2a2a3a;
+            padding: 10px;
+            border-left: 4px solid #55aaff;
+            margin: 10px 0;
+        }
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .choice-btn {
+            background-color: #55aaff;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        .choice-btn:hover {
+            background-color: #4488cc;
+        }
+        .ending {
+            font-weight: bold;
+            color: #ffaa55;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .restart-btn {
+            background-color: #55aa55;
+            margin-top: 10px;
+        }
+        .restart-btn:hover {
+            background-color: #448844;
+        }
+        .timer {
+            color: #ff5555;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Nhiệm vụ trên hành tinh Xerath</h1>
+        <div id="timer" class="timer"></div>
+        <div id="story-text" class="story-text"></div>
+        <div id="choices" class="choices"></div>
+        <div id="ending" class="ending"></div>
+    </div>
+
+    <script>
+        const storyNodes = {
+            start: {
+                text: "Bạn là đội trưởng của tàu vũ trụ *Aurora*, dẫn đầu đội thám hiểm gồm Sam – kỹ sư nóng tính, và Lena – nhà sinh vật học cẩn thận. Nhiệm vụ của bạn: khám phá hành tinh Xerath, một hành tinh xa xôi với dấu hiệu của nền văn minh cổ đại. Khi tàu chuẩn bị hạ cánh, AI tàu *Nexus* cảnh báo: 'Hành tinh có tín hiệu năng lượng bất thường. Hãy chọn điểm hạ cánh cẩn thận.'",
+                timeLimit: 6000,
+                choices: [
+                    { text: "Hạ cánh ở vùng đồi có sương mù", next: "misty_hills" },
+                    { text: "Hạ cánh gần cấu trúc lạ", next: "strange_structure" },
+                    { text: "Kiểm tra dữ liệu từ *Nexus* trước", next: "check_nexus" }
+                ]
+            },
+            check_nexus: {
+                text: "Bạn yêu cầu *Nexus* phân tích dữ liệu. AI báo cáo: 'Vùng đồi có sương mù gây nhiễu tín hiệu liên lạc, nhưng an toàn hơn. Cấu trúc lạ phát ra năng lượng mạnh, có thể nguy hiểm.' Bạn quyết định nhanh trước khi tàu mất kiểm soát.",
+                timeLimit: 45,
+                choices: [
+                    { text: "Hạ cánh ở vùng đồi có sương mù", next: "misty_hills" },
+                    { text: "Hạ cánh gần cấu trúc lạ", next: "strange_structure" }
+                ]
+            },
+            misty_hills: {
+                text: "Tàu hạ cánh xuống vùng đồi bao phủ bởi sương mù dày đặc, ánh sáng tím nhạt lấp ló qua làn sương. Sam càu nhàu: 'Tầm nhìn kém thế này, làm sao tìm được gì?' Lena kiểm tra thiết bị: 'Tín hiệu liên lạc bị nhiễu, nhưng tôi phát hiện một tàn tích cách đây 2km.' Bạn dẫn đội tiến về tàn tích cổ đại.",
+                choices: [
+                    { text: "Quan sát tàn tích từ xa", next: "observe_ruins" },
+                    { text: "Tiến vào bên trong tàn tích", next: "enter_ruins" },
+                    { text: "Kiểm tra môi trường xung quanh", next: "check_environment" }
+                ]
+            },
+            strange_structure: {
+                text: "Tàu hạ cánh gần một cấu trúc khổng lồ, lấp lánh ánh sáng xanh kỳ lạ. Đột nhiên, một luồng năng lượng quét qua, làm rung chuyển tàu. Sam hét lên: 'Có cái gì đó đang quét chúng ta!' Lena bình tĩnh: 'Đây không phải công nghệ bình thường. Chúng ta nên cẩn thận.' Bạn cảm nhận được nguy hiểm, nhưng tò mò thôi thúc.",
+                choices: [
+                    { text: "Quan sát cấu trúc từ xa", next: "observe_ruins" },
+                    { text: "Tiến vào bên trong cấu trúc", next: "enter_ruins" },
+                    { text: "Rút lui về tàu", next: "retreat_to_ship" }
+                ]
+            },
+            retreat_to_ship: {
+                text: "Bạn ra lệnh rút lui, nhưng năng lượng từ cấu trúc bùng phát, phá hủy tàu *Aurora*. Cả đội bị mắc kẹt trên Xerath, không còn cách liên lạc với Trái Đất.",
+                ending: "Bad Ending: Tàu bị phá hủy, cả đội bị mắc kẹt vĩnh viễn."
+            },
+            check_environment: {
+                text: "Bạn kiểm tra khu vực quanh vùng đồi. Một hồ nước phát sáng kỳ lạ thu hút sự chú ý. Lena cảnh báo: 'Có dấu hiệu sinh học bất thường trong nước.' Sam muốn lấy mẫu, nhưng bạn cảm thấy không ổn.",
+                choices: [
+                    { text: "Lấy mẫu nước", next: "sample_water" },
+                    { text: "Bỏ qua và tiến đến tàn tích", next: "observe_ruins" }
+                ]
+            },
+            sample_water: {
+                text: "Sam lấy mẫu nước, nhưng một sinh vật dạng sương mù trồi lên từ hồ, tấn công anh ta. Lena cố cứu, nhưng cả hai bị nuốt chửng vào làn sương. Bạn không thể làm gì ngoài chạy thoát.",
+                ending: "Horror Ending: Sam và Lena bị sinh vật nuốt chửng, bạn sống sót nhưng đơn độc."
+            },
+            observe_ruins: {
+                text: "Từ xa, bạn thấy tàn tích cổ đại với những cột đá khổng lồ, phát ra ánh sáng xanh nhạt. *Nexus* báo cáo: 'Tín hiệu năng lượng tăng mạnh, có thể là hệ thống phòng thủ.' Sam sốt ruột: 'Quan sát thế đủ rồi, vào trong đi!' Lena đề nghị: 'Nên tìm hiểu thêm trước.'",
+                choices: [
+                    { text: "Tiến vào bên trong tàn tích", next: "enter_ruins" },
+                    { text: "Tìm kiếm lối vào phụ", next: "find_side_entrance" }
+                ]
+            },
+            find_side_entrance: {
+                text: "Bạn tìm thấy một lối vào nhỏ, ẩn sau lớp rêu phát sáng. Bên trong, một bảng điều khiển cổ đại hiện lên với ký hiệu lạ. Lena nói: 'Đây có thể là chìa khóa để hiểu tàn tích.' Sam gầm gừ: 'Cứ chạm vào đi, đừng mất thời gian!'",
+                choices: [
+                    { text: "Chạm vào cổng năng lượng", next: "touch_portal" },
+                    { text: "Giải mã ký hiệu cổ", next: "decode_symbols" },
+                    { text: "Kiểm tra thêm khu vực", next: "explore_further" }
+                ]
+            },
+            explore_further: {
+                text: "Bạn khám phá sâu hơn và tìm thấy một cỗ máy cổ đại, phát ra âm thanh vo ve. Nó dường như đang theo dõi bạn. Lena thì thầm: 'Đây có thể là trí tuệ nhân tạo của người Xerath.' Bạn phải quyết định nhanh!",
+                timeLimit: 30,
+                choices: [
+                    { text: "Kích hoạt cỗ máy", next: "activate_machine" },
+                    { text: "Phá hủy cỗ máy", next: "destroy_machine" },
+                    { text: "Bỏ qua và quay lại", next: "enter_ruins" }
+                ]
+            },
+            activate_machine: {
+                text: "Cỗ máy khởi động, phát ra giọng nói trong đầu bạn: 'Kẻ xâm nhập, chứng minh giá trị của ngươi.' Một câu đố hiện lên trên màn hình – bạn phải trả lời đúng để tiếp tục.",
+                choices: [
+                    { text: "Trả lời câu đố", next: "solve_puzzle" },
+                    { text: "Bỏ qua và rời đi", next: "leave_machine" }
+                ]
+            },
+            solve_puzzle: {
+                text: "Bạn trả lời đúng câu đố. Cỗ máy mở ra một kho dữ liệu, tiết lộ về một nền văn minh đã bị hủy diệt bởi chính công nghệ của họ. Bạn nhận được một thiết bị liên lạc cổ để gửi tín hiệu cầu cứu.",
+                choices: [
+                    { text: "Sử dụng thiết bị liên lạc", next: "use_ancient_device" }
+                ]
+            },
+            use_ancient_device: {
+                text: "Thiết bị gửi tín hiệu mạnh mẽ đến một tàu cứu hộ. Bạn và đội sống sót, mang về công nghệ cổ đại, mở ra kỷ nguyên mới cho loài người.",
+                ending: "Secret Ending: Khám phá bí mật Xerath, trở thành người hùng."
+            },
+            leave_machine: {
+                text: "Bạn rời đi, nhưng cỗ máy kích hoạt hệ thống phòng thủ. Một chùm tia năng lượng bắn ra, thiêu rụi cả đội.",
+                ending: "Bad Ending: Bị hệ thống phòng thủ tiêu diệt."
+            },
+            destroy_machine: {
+                text: "Bạn phá hủy cỗ máy, nhưng nó phát nổ, làm sụp cả khu tàn tích. Bạn và đội bị chôn vùi dưới đống đổ nát.",
+                ending: "Bad Ending: Chết trong vụ nổ, nhiệm vụ thất bại."
+            },
+            enter_ruins: {
+                text: "Bên trong tàn tích, không khí lạnh buốt, ánh sáng xanh từ các bức tường chiếu lên những ký hiệu cổ. Một cổng năng lượng khổng lồ đứng giữa căn phòng. Sam phấn khích: 'Cái này chắc chắn dẫn đến kho báu!' Lena lo lắng: 'Tôi cảm thấy năng lượng này... không ổn.'",
+                timeLimit: 45,
+                choices: [
+                    { text: "Chạm vào cổng năng lượng", next: "touch_portal" },
+                    { text: "Giải mã ký hiệu cổ", next: "decode_symbols" },
+                    { text: "Kiểm tra thiết bị xung quanh", next: "check_devices" }
+                ]
+            },
+            check_devices: {
+                text: "Bạn tìm thấy một thiết bị phát tín hiệu yếu, dường như là bộ liên lạc cổ. Lena nói: 'Nếu sửa được, chúng ta có thể gọi cứu hộ.' Sam phản đối: 'Tốn thời gian, cứ đi sâu vào trong đi!'",
+                choices: [
+                    { text: "Sửa thiết bị liên lạc", next: "repair_comms" },
+                    { text: "Tiếp tục khám phá", next: "decode_symbols" }
+                ]
+            },
+            repair_comms: {
+                text: "Bạn sửa thiết bị, nhưng tín hiệu yếu. Sam đề nghị tách nhóm để tìm bộ khuếch đại tín hiệu. Lena lo lắng: 'Tách ra ở nơi này quá nguy hiểm.'",
+                choices: [
+                    { text: "Tách nhóm", next: "split_team" },
+                    { text: "Giữ nhóm lại", next: "keep_team" }
+                ]
+            },
+            touch_portal: {
+                text: "Bạn chạm vào cổng, và một luồng năng lượng hút bạn vào. Cơ thể bạn tan rã trong ánh sáng xanh, hòa vào hệ thống năng lượng của tàn tích.",
+                ending: "Bad Ending: Bị cổng năng lượng hấp thụ, không còn tồn tại."
+            },
+            decode_symbols: {
+                text: "Bạn giải mã ký hiệu cổ, và một cánh cửa bí mật mở ra, dẫn đến một phòng dữ liệu. Lena kinh ngạc: 'Đây là kho kiến thức của một nền văn minh!' Sam bất cẩn chạm vào một bảng điều khiển, và ánh sáng đỏ lóe lên.",
+                timeLimit: 30,
+                choices: [
+                    { text: "Kiểm tra phòng dữ liệu", next: "data_room" },
+                    { text: "Ngăn Sam lại", next: "stop_sam" },
+                    { text: "Kích hoạt bảng điều khiển", next: "activate_panel" }
+                ]
+            },
+            data_room: {
+                text: "Phòng dữ liệu chứa thông tin về một loài sinh vật trí tuệ từng sống trên Xerath. Họ đã tạo ra công nghệ vượt thời đại nhưng tự hủy diệt. Bạn thu thập dữ liệu, nhưng Sam đột nhiên biến mất.",
+                choices: [
+                    { text: "Tìm Sam", next: "find_sam" },
+                    { text: "Bỏ qua và tiếp tục", next: "continue_without_sam" },
+                    { text: "Kiểm tra dữ liệu thêm", next: "check_data" }
+                ]
+            },
+            check_data: {
+                text: "Bạn đọc thêm dữ liệu và phát hiện một bản đồ dẫn đến một con tàu cổ trong rừng phát sáng. Lena nói: 'Đây có thể là cách thoát khỏi hành tinh!'",
+                choices: [
+                    { text: "Đi đến rừng phát sáng", next: "enter_glowing_forest" }
+                ]
+            },
+            stop_sam: {
+                text: "Bạn kéo Sam ra khỏi bảng điều khiển, nhưng anh ta đã kích hoạt một hệ thống phòng thủ. Một sinh vật cơ khí xuất hiện, tấn công cả đội.",
+                ending: "Horror Ending: Bị sinh vật cơ khí tiêu diệt."
+            },
+            activate_panel: {
+                text: "Bảng điều khiển phát ra sóng năng lượng, khiến Sam ngã xuống, mắt anh ta ánh lên màu xanh kỳ lạ. Lena hét lên: 'Sam không còn là chính mình nữa!'",
+                ending: "Twist Ending: Sam bị điều khiển bởi trí tuệ cổ đại."
+            },
+            split_team: {
+                text: "Sam tách ra để tìm bộ khuếch đại tín hiệu. Sau vài giờ, anh ta không trở lại. Lena lo lắng: 'Chúng ta không nên để anh ấy đi một mình.' Bạn nghe thấy tiếng động lạ từ hướng Sam biến mất.",
+                choices: [
+                    { text: "Tìm Sam", next: "find_sam" },
+                    { text: "Bỏ qua và tiếp tục", next: "continue_without_sam" }
+                ]
+            },
+            find_sam: {
+                text: "Bạn tìm thấy Sam, nhưng anh ta hành động kỳ lạ, lẩm bẩm những từ không rõ nghĩa. Đột nhiên, anh ta tấn công bạn, mắt ánh lên màu xanh. Lena hét: 'Anh ấy bị điều khiển!'",
+                ending: "Twist Ending: Sam bị sinh vật trí tuệ kiểm soát, cả đội thất bại."
+            },
+            continue_without_sam: {
+                text: "Bạn bỏ qua Sam và tiếp tục với Lena. Sau đó, bạn nhận được tín hiệu từ Sam, nhưng chỉ là tiếng hét cuối cùng trước khi anh ta chết. Lena suy sụp: 'Chúng ta đáng lẽ nên cứu anh ấy...'",
+                ending: "Bad Ending: Sam chết, cả đội mang nỗi đau và thất bại."
+            },
+            keep_team: {
+                text: "Bạn giữ nhóm lại, và cả đội sửa được thiết bị liên lạc. Đêm đó, bạn nghe thấy âm thanh kỳ lạ – như tiếng thì thầm từ xa. Lena thì thầm: 'Có gì đó ngoài kia... đang theo dõi chúng ta.'",
+                choices: [
+                    { text: "Theo dõi âm thanh", next: "follow_sound" },
+                    { text: "Lờ đi và nghỉ ngơi", next: "ignore_sound" },
+                    { text: "Kiểm tra thiết bị liên lạc", next: "check_comms_again" }
+                ]
+            },
+            check_comms_again: {
+                text: "Bạn kiểm tra thiết bị liên lạc và phát hiện một tín hiệu yếu từ một vệ tinh cổ. Lena nói: 'Nếu kích hoạt được nó, chúng ta có thể gửi cầu cứu!'",
+                choices: [
+                    { text: "Kích hoạt vệ tinh cổ", next: "activate_satellite" }
+                ]
+            },
+            follow_sound: {
+                text: "Bạn dẫn đội theo âm thanh, đến một khu vực đầy sương mù. Một sinh vật tàng hình xuất hiện, phát ra ánh sáng mờ ảo. Sam thì thầm: 'Nó không tấn công... chưa tấn công.' Lena đề nghị: 'Có thể nó muốn giao tiếp.'",
+                choices: [
+                    { text: "Giao tiếp với sinh vật", next: "communicate_creature" },
+                    { text: "Tấn công sinh vật", next: "attack_creature" },
+                    { text: "Rút lui lặng lẽ", next: "retreat_quietly" }
+                ]
+            },
+            communicate_creature: {
+                text: "Bạn phát tín hiệu thân thiện, và sinh vật đáp lại bằng hình ảnh trong đầu bạn: một con đường dẫn đến một con tàu cổ. Nó rời đi, để lại bạn an toàn.",
+                choices: [
+                    { text: "Đi theo con đường", next: "follow_path" }
+                ]
+            },
+            attack_creature: {
+                text: "Bạn tấn công, nhưng sinh vật tàng hình trả đũa, triệu hồi đồng loại. Cả đội bị săn lùng trong bóng tối, không lối thoát.",
+                ending: "Horror Ending: Bị sinh vật săn lùng đến chết."
+            },
+            retreat_quietly: {
+                text: "Bạn rút lui, nhưng sinh vật vẫn theo dõi từ xa. Lena nói: 'Chúng ta cần gửi tín hiệu cầu cứu ngay, trước khi nó quay lại.'",
+                choices: [
+                    { text: "Dùng đài chính", next: "use_main_radio" },
+                    { text: "Dùng bộ phát thủ công", next: "use_manual_transmitter" }
+                ]
+            },
+            ignore_sound: {
+                text: "Bạn lờ đi âm thanh và nghỉ ngơi. Sáng hôm sau, đội bạn không tiến triển gì mới, nhưng Lena phát hiện một khu rừng phát sáng gần đó.",
+                choices: [
+                    { text: "Đi đến rừng phát sáng", next: "enter_glowing_forest" },
+                    { text: "Gửi tín hiệu cầu cứu", next: "use_main_radio" }
+                ]
+            },
+            follow_path: {
+                text: "Con đường dẫn bạn đến một khu rừng phát sáng, với những cây phát quang và không khí đầy hạt ánh sáng. Lena đột nhiên ngã xuống, ôm ngực: 'Có gì đó... trong tôi!'",
+                choices: [
+                    { text: "Cứu Lena", next: "save_lena" },
+                    { text: "Loại bỏ Lena", next: "eliminate_lena" },
+                    { text: "Tìm con tàu cổ", next: "find_ancient_ship" }
+                ]
+            },
+            use_main_radio: {
+                text: "Bạn sử dụng đài chính để gửi tín hiệu cầu cứu. Một phản hồi đến ngay: 'Chúng tôi đang đến, giữ vị trí!' Sam reo lên: 'Được cứu rồi!' Nhưng Lena nghi ngờ: 'Tín hiệu này... có gì đó sai sai.'",
+                timeLimit: 30,
+                choices: [
+                    { text: "Ra đón đội cứu hộ", next: "meet_rescue" },
+                    { text: "Kiểm tra tín hiệu", next: "check_signal" }
+                ]
+            },
+            meet_rescue: {
+                text: "Bạn ra đón đội cứu hộ, nhưng đó là những sinh vật giả dạng. Chúng tấn công, và cả đội bị xóa sổ trong chớp mắt.",
+                ending: "Horror Ending: Bị sinh vật giả dạng phục kích."
+            },
+            check_signal: {
+                text: "Bạn phát hiện tín hiệu là giả, do một hệ thống cổ trên hành tinh tạo ra. Lena đề nghị dùng bộ phát thủ công để thử lại.",
+                choices: [
+                    { text: "Dùng bộ phát thủ công", next: "use_manual_transmitter" },
+                    { text: "Đi tìm nguồn tín hiệu giả", next: "find_signal_source" }
+                ]
+            },
+            find_signal_source: {
+                text: "Bạn lần theo tín hiệu giả đến một phòng kín sâu trong tàn tích. Bên trong, một sinh vật trí tuệ chào đón bạn: 'Kẻ xâm nhập, hãy chứng minh trí tuệ của ngươi.'",
+                choices: [
+                    { text: "Trả lời câu đố của họ", next: "answer_puzzle" },
+                    { text: "Biểu hiện bất kính", next: "act_disrespectful" }
+                ]
+            },
+            use_manual_transmitter: {
+                text: "Bạn dùng bộ phát thủ công, và tín hiệu kích hoạt một vệ tinh cổ trên quỹ đạo. Một tàu cứu hộ thực sự nhận được tín hiệu và đến cứu bạn.",
+                choices: [
+                    { text: "Chờ đội cứu hộ", next: "wait_rescue" }
+                ]
+            },
+            wait_rescue: {
+                text: "Đội cứu hộ đến, đưa bạn và Lena về Trái Đất. Dữ liệu từ Xerath mở ra một kỷ nguyên khám phá mới, nhưng bạn không thể quên những gì đã thấy.",
+                ending: "Happy Ending: Thoát khỏi Xerath, mang về kiến thức cổ đại."
+            },
+            enter_glowing_forest: {
+                text: "Khu rừng phát sáng rực rỡ với những cây phát quang và sinh vật bay lượn như đom đóm khổng lồ. Lena đột nhiên ngã xuống, da cô chuyển màu xanh: 'Có gì đó... đang điều khiển tôi!' Sam hoảng loạn: 'Chúng ta phải làm gì đó!'",
+                choices: [
+                    { text: "Cứu Lena", next: "save_lena" },
+                    { text: "Loại bỏ Lena", next: "eliminate_lena" },
+                    { text: "Tìm con tàu cổ", next: "find_ancient_ship" },
+                    { text: "Kiểm tra môi trường rừng", next: "check_forest" }
+                ]
+            },
+            check_forest: {
+                text: "Bạn kiểm tra khu rừng và tìm thấy một bia đá cổ với ký hiệu giống trong tàn tích. Nó dường như là một lời cảnh báo về sinh vật ký sinh.",
+                choices: [
+                    { text: "Đọc kỹ bia đá", next: "read_stone" },
+                    { text: "Tiếp tục tìm tàu", next: "find_ancient_ship" }
+                ]
+            },
+            read_stone: {
+                text: "Bia đá kể về một loài ký sinh kiểm soát vật chủ. Bạn nhận ra Lena có thể đã bị nhiễm từ lâu, nhưng vẫn còn cách cứu cô ấy.",
+                choices: [
+                    { text: "Cứu Lena", next: "save_lena" },
+                    { text: "Loại bỏ Lena", next: "eliminate_lena" }
+                ]
+            },
+            save_lena: {
+                text: "Bạn cố cứu Lena bằng cách tiêm thuốc kháng sinh, nhưng sinh vật ký sinh đã kiểm soát hoàn toàn. Cô tấn công bạn và Sam, dẫn đến thảm kịch.",
+                ending: "Twist Ending: Lena bị ký sinh kiểm soát, cả đội bị tiêu diệt."
+            },
+            eliminate_lena: {
+                text: "Bạn buộc phải loại bỏ Lena để bảo vệ đội. Tàu cứu hộ đến ngay sau đó, nhưng bạn sống mãi với nỗi đau và tội lỗi vì mất cô ấy.",
+                ending: "Guilt Ending: Thoát khỏi Xerath, nhưng mang nỗi đau vĩnh viễn."
+            },
+            find_ancient_ship: {
+                text: "Bạn tìm thấy một con tàu cổ trong rừng, vẫn còn hoạt động. Sam hào hứng: 'Chỉ cần sửa nó, chúng ta sẽ thoát khỏi đây!' Nhưng khi khởi động, một đám mây ký sinh tràn vào.",
+                choices: [
+                    { text: "Sửa tàu nhanh chóng", next: "repair_ship" },
+                    { text: "Kiểm tra tàu trước", next: "check_ship" }
+                ]
+            },
+            check_ship: {
+                text: "Bạn kiểm tra và phát hiện ký sinh trong hệ thống tàu. Bạn tiêu diệt chúng, và tàu khởi động thành công, đưa cả đội về Trái Đất.",
+                ending: "Happy Ending: Thoát khỏi Xerath bằng con tàu cổ."
+            },
+            repair_ship: {
+                text: "Bạn sửa tàu, nhưng không nhận ra ký sinh đã xâm nhập. Khi tàu cất cánh, cả đội bị ký sinh kiểm soát, trở thành vật chủ vĩnh viễn.",
+                ending: "Bad Ending: Bị ký sinh kiểm soát, không còn là con người."
+            },
+            answer_puzzle: {
+                text: "Bạn trả lời đúng câu đố của sinh vật trí tuệ. Họ ấn tượng và chia sẻ công nghệ của họ, đồng thời mở đường cho bạn trở về Trái Đất.",
+                ending: "Happy Ending: Nhận công nghệ cổ đại, trở về an toàn."
+            },
+            act_disrespectful: {
+                text: "Bạn tỏ ra bất kính, và sinh vật trí tuệ xóa trí nhớ của bạn. Bạn tỉnh dậy trên tàu *Aurora*, không nhớ gì, và nhiệm vụ bắt đầu lại từ đầu.",
+                ending: "Loop Ending: Trí nhớ bị xóa, lặp lại nhiệm vụ vĩnh viễn."
+            }
+        };
+
+        let currentNode = "start";
+        let timeLeft = 0;
+        let timerInterval = null;
+
+        function startTimer(limit) {
+            if (timerInterval) clearInterval(timerInterval);
+            timeLeft = limit;
+            const timerElement = document.getElementById("timer");
+            timerElement.innerText = `Thời gian còn lại: ${timeLeft} giây`;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.innerText = `Thời gian còn lại: ${timeLeft} giây`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    currentNode = "time_out";
+                    displayCurrentNode();
+                }
+            }, 1000);
+        }
+
+        function displayCurrentNode() {
+            const node = storyNodes[currentNode] || {
+                text: "Hết thời gian! Một số manh mối đã biến mất, và cả đội bị mắc kẹt trên Xerath.",
+                ending: "Bad Ending: Hết thời gian, nhiệm vụ thất bại."
+            };
+            document.getElementById("story-text").innerHTML = node.text.replace(/\n/g, "<br>");
+            const choicesContainer = document.getElementById("choices");
+            const endingContainer = document.getElementById("ending");
+            choicesContainer.innerHTML = "";
+            endingContainer.innerText = "";
+
+            if (node.timeLimit) {
+                startTimer(node.timeLimit);
+            } else {
+                clearInterval(timerInterval);
+                document.getElementById("timer").innerText = "";
+            }
+
+            if (node.choices) {
+                node.choices.forEach(choice => {
+                    const button = document.createElement("button");
+                    button.innerText = choice.text;
+                    button.className = "choice-btn";
+                    button.onclick = () => {
+                        clearInterval(timerInterval);
+                        currentNode = choice.next;
+                        displayCurrentNode();
+                    };
+                    choicesContainer.appendChild(button);
+                });
+            } else {
+                clearInterval(timerInterval);
+                endingContainer.innerText = node.ending;
+                const restartButton = document.createElement("button");
+                restartButton.innerText = "Chơi lại từ đầu";
+                restartButton.className = "choice-btn restart-btn";
+                restartButton.onclick = () => {
+                    currentNode = "start";
+                    displayCurrentNode();
+                };
+                choicesContainer.appendChild(restartButton);
+            }
+        }
+
+        window.onload = () => {
+            displayCurrentNode();
+        };
+    </script>
+</body>
+</html>

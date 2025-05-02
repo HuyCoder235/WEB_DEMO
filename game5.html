@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thám Hiểm Động Vật Quái Dị</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1c2526;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            background-color: #2e3b3e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+        h1 {
+            text-align: center;
+            color: #00b7eb;
+            text-shadow: 0 0 5px #00b7eb;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background-color: #3a4a4e;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .stat {
+            font-weight: bold;
+        }
+        .story-text {
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        .dialogue {
+            background-color: #4a5a5e;
+            padding: 10px;
+            border-left: 4px solid #00b7eb;
+            margin: 10px 0;
+        }
+        .inventory {
+            background-color: #4a5a5e;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .choice-btn {
+            background-color: #00b7eb;
+            color: #1c2526;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        .choice-btn:hover {
+            background-color: #008bb0;
+        }
+        .ending {
+            font-weight: bold;
+            color: #ff4500;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .restart-btn {
+            background-color: #228b22;
+            margin-top: 10px;
+        }
+        .restart-btn:hover {
+            background-color: #1a6b1a;
+        }
+        .timer {
+            color: #ff4500;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Thám Hiểm Động Vật Quái Dị</h1>
+        <div id="stats" class="stats">
+            <span class="stat">Tinh thần: <span id="morale">100</span>%</span>
+            <span class="stat">Sức khỏe: <span id="health">100</span>%</span>
+            <span class="stat">Dữ liệu: <span id="data">0</span></span>
+            <span class="stat">Nguy hiểm: <span id="danger">10</span>%</span>
+        </div>
+        <div id="inventory" class="inventory">Tài nguyên: Súng gây mê (3 đạn), Dao phẫu thuật, Đèn pin</div>
+        <div id="timer" class="timer"></div>
+        <div id="story-text" class="story-text"></div>
+        <div id="choices" class="choices"></div>
+        <div id="ending" class="ending"></div>
+    </div>
+
+    <script>
+        let stats = {
+            morale: 100,
+            health: 100,
+            data: 0,
+            danger: 10
+        };
+
+        let inventory = {
+            tranquilizer: 3,
+            knife: 1,
+            flashlight: 1,
+            medkit: 0,
+            battery: 0,
+            chemical: 0,
+            sample: 0,
+            drive: 0,
+            signal: 0,
+            tools: ["Súng gây mê (3 đạn)", "Dao phẫu thuật", "Đèn pin"]
+        };
+
+        const storyNodes = {
+            start: {
+                text: "Trực thăng hạ cánh trên bãi đất trống gần Isola Tenebris, hòn đảo chìm trong sương mù. Bạn, một nhà sinh vật học, bước xuống, mang theo súng gây mê, dao phẫu thuật, và đèn pin. Căn cứ nghiên cứu phía trước hoang tàn, cửa kính vỡ vụn, máu loang trên tường. Bạn tự nhủ: 'Mùi tử khí ở đây... mình phải cẩn thận.' Nhiệm vụ: điều tra thí nghiệm X13, thu thập dữ liệu, và sống sót. Bạn nghe tiếng rít quái dị từ xa.",
+                timeLimit: 60,
+                choices: [
+                    { text: "Đi vào phòng thí nghiệm", next: "lab_entry", effects: { morale: -10, danger: 20 } },
+                    { text: "Khám phá khu rừng bên cạnh", next: "forest_entry", effects: { morale: -5, danger: 30 } },
+                    { text: "Kiểm tra căn cứ bên ngoài", next: "check_base", effects: { morale: 5, health: -5 } }
+                ]
+            },
+            check_base: {
+                text: "Bạn kiểm tra khu vực quanh căn cứ. Một email in vội trên bàn viết: 'X13 đã thoát, chúng ta mất kiểm soát!' Bạn tìm thấy một bộ sơ cứu, nhưng tiếng rít từ rừng khiến bạn lạnh gáy. 'Mình không thể ở đây lâu,' bạn nghĩ.",
+                effects: { inventory: { medkit: 1 }, morale: -5 },
+                choices: [
+                    { text: "Đi vào phòng thí nghiệm", next: "lab_entry", effects: { morale: -10, danger: 20 } },
+                    { text: "Khám phá khu rừng", next: "forest_entry", effects: { morale: -5, danger: 30 } },
+                    { text: "Nghỉ ngơi để lấy tinh thần", next: "rest_base", effects: { morale: 10, health: 10 } }
+                ]
+            },
+            rest_base: {
+                text: "Bạn ngồi nghỉ trong góc căn cứ, dùng bộ sơ cứu để băng bó vài vết xước. Tinh thần bạn ổn định hơn, nhưng cái đói bắt đầu cồn cào. 'Mình cần hành động trước khi quá muộn,' bạn tự nhủ.",
+                effects: { health: 20, morale: 10 },
+                choices: [
+                    { text: "Đi vào phòng thí nghiệm", next: "lab_entry", effects: { morale: -10, danger: 20 } },
+                    { text: "Khám phá khu rừng", next: "forest_entry", effects: { morale: -5, danger: 30 } },
+                    { text: "Tìm thức ăn trong căn cứ", next: "find_food", effects: { health: -10, morale: -5 } }
+                ]
+            },
+            find_food: {
+                text: "Bạn lục lọi căn cứ, tìm được một thanh năng lượng hết hạn. Ăn nó làm bạn đỡ đói, nhưng vị hóa học khiến bạn khó chịu. 'Chắc không chết đâu... đúng không?' bạn tự hỏi. Tiếng rít từ rừng gần hơn.",
+                effects: { health: 10, morale: -5 },
+                choices: [
+                    { text: "Đi vào phòng thí nghiệm", next: "lab_entry", effects: { morale: -10, danger: 20 } },
+                    { text: "Khám phá khu rừng", next: "forest_entry", effects: { morale: -5, danger: 30 } }
+                ]
+            },
+            lab_entry: {
+                text: "Bạn bước vào phòng thí nghiệm, không khí nặng mùi hóa chất. Ống nghiệm vỡ vụn khắp sàn, và một nhật ký cũ nằm trên bàn. Bạn đọc: 'X13 là tương lai... nhưng chúng tôi đã đi quá xa.' Có tiếng bước chân nặng nề ở hành lang phía sau. Bạn cảm thấy tim đập mạnh.",
+                effects: { data: 15, morale: -10, danger: 30 },
+                choices: [
+                    { text: "Đọc kỹ nhật ký", next: "read_journal", effects: { morale: -5, data: 10 } },
+                    { text: "Đi đến khu lưu trữ DNA", next: "dna_storage", effects: { morale: -10, danger: 40 } },
+                    { text: "Trốn vào phòng phụ", next: "aux_lab", effects: { morale: 5, danger: 20 } }
+                ]
+            },
+            read_journal: {
+                text: "Nhật ký viết: 'X13 là sinh vật bán người, kết hợp gen thú và trí khôn nhân loại. Nhưng nó học quá nhanh... và phản bội chúng tôi.' Bạn ghi chú thông tin, nhưng tiếng gầm rú gần hơn. 'Nó biết mình ở đây,' bạn nghĩ, tay run khi cầm dao.",
+                effects: { data: 10, morale: -10 },
+                choices: [
+                    { text: "Đi đến khu lưu trữ DNA", next: "dna_storage", effects: { morale: -10, danger: 40 } },
+                    { text: "Trốn vào phòng phụ", next: "aux_lab", effects: { morale: 5, danger: 20 } },
+                    { text: "Chuẩn bị đối đầu", next: "prepare_fight", effects: { morale: -20, danger: 50 } }
+                ]
+            },
+            aux_lab: {
+                text: "Bạn trốn vào phòng thí nghiệm phụ, tìm thấy công thức vaccine chống ký sinh X13. Nhưng thiếu bình xịt hóa học để chế tạo. Một tiếng rít vang lên – thực vật di chuyển đang bò trên trần. Bạn thì thầm: 'Chết tiệt, chúng ở khắp nơi!'",
+                effects: { data: 10, morale: -10 },
+                choices: [
+                    { text: "Tìm bình xịt hóa học", next: "find_chemical", effects: { morale: -10, danger: 30 } },
+                    { text: "Chạy đến khu lưu trữ DNA", next: "dna_storage", effects: { morale: -10, danger: 40 } },
+                    { text: "Đối phó thực vật", next: "fight_plant", effects: { health: -20, morale: -15 } }
+                ]
+            },
+            find_chemical: {
+                text: "Bạn tìm thấy bình xịt hóa học trong tủ khóa. Dùng nó, bạn vô hiệu hóa thực vật di chuyển, thu được mẫu enzyme của chúng. 'Cái này có thể giúp chế vaccine,' bạn nghĩ, nhưng hơi thở nặng nề vì khí độc rò rỉ trong phòng.",
+                effects: { inventory: { chemical: 1, sample: 1 }, data: 10, health: -10 },
+                choices: [
+                    { text: "Chế vaccine", next: "make_vaccine", effects: { morale: 20, data: 15 } },
+                    { text: "Đi đến khu lưu trữ DNA", next: "dna_storage", effects: { morale: -10, danger: 40 } },
+                    { text: "Nghỉ ngơi", next: "rest_lab", effects: { morale: 10, health: 10 } }
+                ]
+            },
+            fight_plant: {
+                text: "Bạn dùng dao phẫu thuật chém thực vật, nhưng enzyme của nó phun vào tay bạn, gây bỏng rát. Bạn thoát được, nhưng cơ thể yếu đi. 'Mình không thể tiếp tục như thế này,' bạn rên rỉ.",
+                effects: { health: -30, morale: -20 },
+                choices: [
+                    { text: "Tìm bình xịt hóa học", next: "find_chemical", effects: { morale: -10, danger: 30 } },
+                    { text: "Đi đến khu lưu trữ DNA", next: "dna_storage", effects: { morale: -10, danger: 40 } },
+                    { text: "Nghỉ ngơi", next: "rest_lab", effects: { morale: 10, health: 10 } }
+                ]
+            },
+            make_vaccine: {
+                text: "Bạn kết hợp mẫu enzyme và bình xịt hóa học, tạo ra một liều vaccine thô sơ. 'Nếu rời đảo, mình có thể cứu hàng triệu người,' bạn nghĩ, cảm thấy hy vọng. Nhưng tiếng gầm của X13 vang lên đâu đó gần đây.",
+                effects: { data: 20, morale: 30, inventory: { tools: ["Vaccine thô"] } },
+                choices: [
+                    { text: "Đi đến khu lưu trữ DNA", next: "dna_storage", effects: { morale: -10, danger: 40 } },
+                    { text: "Tìm đường thoát đảo", next: "escape_island", effects: { morale: -5, danger: 30 } },
+                    { text: "Đối đầu X13", next: "confront_alpha", effects: { morale: -20, danger: 50 } }
+                ]
+            },
+            forest_entry: {
+                text: "Rừng rậm bao quanh căn cứ đầy tiếng rít quái dị. Bạn phát hiện một sinh vật dị dạng – loài ký sinh đa xúc tu – đang bò trên cây. Nó quay đầu, xúc tu giật giật. Bạn thì thầm: 'Đừng cử động... đừng cử động...' Tim bạn đập thình thịch.",
+                timeLimit: 30,
+                choices: [
+                    { text: "Chạy trốn", next: "escape_parasite", effects: { morale: -10, health: -10 } },
+                    { text: "Ẩn nấp", next: "hide_parasite", effects: { morale: -5, danger: 20 } },
+                    { text: "Đối đầu với súng gây mê", next: "fight_parasite", effects: { inventory: { tranquilizer: -1 }, morale: -15 } }
+                ]
+            },
+            escape_parasite: {
+                text: "Bạn chạy thục mạng, cành cây quất vào mặt. Ký sinh đuổi theo, nhưng bạn trốn vào một lùm cây. Khi nó bỏ đi, bạn thở phào, nhưng cơ thể run rẩy. 'Mình không thể bất cẩn thế nữa,' bạn nghĩ.",
+                effects: { morale: -10, health: -10 },
+                choices: [
+                    { text: "Quay lại căn cứ", next: "lab_entry", effects: { morale: -10, danger: 20 } },
+                    { text: "Khám phá sâu hơn trong rừng", next: "deep_forest", effects: { morale: -10, danger: 40 } },
+                    { text: "Thu thập mẫu ký sinh", next: "collect_parasite", effects: { data: 10, morale: -10 } }
+                ]
+            },
+            hide_parasite: {
+                text: "Bạn nín thở, ẩn sau một thân cây. Ký sinh bò qua, xúc tu quét sát mặt bạn. Khi nó rời đi, bạn thu được một mẩu xúc tu rơi ra. 'Cái này có giá trị nghiên cứu,' bạn nghĩ, nhưng tim vẫn đập loạn.",
+                effects: { data: 10, inventory: { sample: 1 }, morale: -5 },
+                choices: [
+                    { text: "Quay lại căn cứ", next: "lab_entry", effects: { morale: -10, danger: 20 } },
+                    { text: "Khám phá sâu hơn trong rừng", next: "deep_forest", effects: { morale: -10, danger: 40 } },
+                    { text: "Nghỉ ngơi", next: "rest_forest", effects: { morale: 10, health: 10 } }
+                ]
+            },
+            fight_parasite: {
+                text: () => {
+                    if (inventory.tranquilizer > 0) {
+                        return {
+                            text: "Bạn bắn súng gây mê, làm ký sinh bất động. Bạn nhanh chóng lấy mẫu xúc tu và chạy thoát. 'May mắn lần này, nhưng đạn không còn nhiều,' bạn nghĩ.",
+                            effects: { data: 15, inventory: { sample: 1 }, morale: 10 },
+                            choices: [
+                                { text: "Quay lại căn cứ", next: "lab_entry", effects: { morale: -10, danger: 20 } },
+                                { text: "Khám phá sâu hơn trong rừng", next: "deep_forest", effects: { morale: -10, danger: 40 } },
+                                { text: "Nghỉ ngơi", next: "rest_forest", effects: { morale: 10, health: 10 } }
+                            ]
+                        };
+                    } else {
+                        return {
+                            text: "Súng gây mê hết đạn! Ký sinh lao tới, xúc tu bám vào cổ bạn. Bạn vùng vẫy, nhưng nó chiếm lấy cơ thể bạn.",
+                            ending: "Biến Dị Ending: Bị ký sinh kiểm soát, bạn trở thành quái vật."
+                        };
+                    }
+                }
+            },
+            collect_parasite: {
+                text: "Bạn cẩn thận thu mẫu xúc tu từ chỗ ký sinh bỏ lại. Mẫu vật có giá trị, nhưng bạn cảm thấy ánh mắt gì đó đang theo dõi từ bóng tối. 'Mình cần rời khỏi đây,' bạn thì thầm.",
+                effects: { data: 10, inventory: { sample: 1 }, morale: -10 },
+                choices: [
+                    { text: "Quay lại căn cứ", next: "lab_entry", effects: { morale: -10, danger: 20 } },
+                    { text: "Khám phá sâu hơn trong rừng", next: "deep_forest", effects: { morale: -10, danger: 40 } },
+                    { text: "Nghỉ ngơi", next: "rest_forest", effects: { morale: 10, health: 10 } }
+                ]
+            },
+            deep_forest: {
+                text: "Rừng càng lúc càng tối, không khí nặng mùi tử khí. Bạn phát hiện tổ của loài ký sinh, hàng chục xúc tu ngoe nguẩy trong bóng tối. Đột nhiên, một sinh vật tàng hình hiện ra khi máu từ vết xước của bạn dính vào nó. 'Chết tiệt, nó ở ngay đây!' bạn hét thầm.",
+                timeLimit: 30,
+                choices: [
+                    { text: "Dùng máu để dụ nó", next: "bait_invisible", effects: { health: -15, morale: -10 } },
+                    { text: "Chạy thoát", next: "escape_invisible", effects: { morale: -10, health: -10 } },
+                    { text: "Dùng súng gây mê", next: "shoot_invisible", effects: { inventory: { tranquilizer: -1 }, morale: -15 } }
+                ]
+            },
+            bait_invisible: {
+                text: "Bạn cắt tay, dùng máu để dụ sinh vật tàng hình. Nó hiện hình, và bạn chém nó bằng dao phẫu thuật. Bạn thu được mẫu da, nhưng vết thương làm bạn yếu đi. 'Mình không thể tiếp tục thế này,' bạn rên rỉ.",
+                effects: { data: 15, inventory: { sample: 1 }, health: -20, morale: 10 },
+                choices: [
+                    { text: "Quay lại căn cứ", next: "lab_entry", effects: { morale: -10, danger: 20 } },
+                    { text: "Tìm bộ phát tín hiệu", next: "find_signal", effects: { morale: -10, danger: 40 } },
+                    { text: "Nghỉ ngơi", next: "rest_forest", effects: { morale: 10, health: 10 } }
+                ]
+            },
+            escape_invisible: {
+                text: "Bạn chạy thoát, nhưng sinh vật tàng hình đuổi theo. Bạn vấp ngã, bị nó cào rách lưng. Bạn trốn được, nhưng cơ thể đau đớn và tinh thần suy sụp. 'Mình cần nghỉ... nhưng không an toàn,' bạn nghĩ.",
+                effects: { health: -30, morale: -20 },
+                choices: [
+                    { text: "Quay lại căn cứ", next: "lab_entry", effects: { morale: -10, danger: 20 } },
+                    { text: "Tìm bộ phát tín hiệu", next: "find_signal", effects: { morale: -10, danger: 40 } },
+                    { text: "Nghỉ ngơi", next: "rest_forest", effects: { morale: 10, health: 10 } }
+                ]
+            },
+            shoot_invisible: {
+                text: () => {
+                    if (inventory.tranquilizer > 0) {
+                        return {
+                            text: "Bạn bắn súng gây mê, làm sinh vật tàng hình ngã xuống. Bạn lấy mẫu da của nó, cảm thấy tự tin hơn. 'Một bước gần hơn đến sự thật,' bạn nghĩ.",
+                            effects: { data: 15, inventory: { sample: 1 }, morale: 15 },
+                            choices: [
+                                { text: "Quay lại căn cứ", next: "lab_entry", effects: { morale: -10, danger: 20 } },
+                                { text: "Tìm bộ phát tín hiệu", next: "find_signal", effects: { morale: -10, danger: 40 } },
+                                { text: "Nghỉ ngơi", next: "rest_forest", effects: { morale: 10, health: 10 } }
+                            ]
+                        };
+                    } else {
+                        return {
+                            text: "Súng hết đạn! Sinh vật tàng hình lao tới, móng vuốt xé toạc bạn. Bạn ngã xuống, máu loang trên đất.",
+                            ending: "Bad Ending: Bị sinh vật tàng hình giết, nhiệm vụ thất bại."
+                        };
+                    }
+                }
+            },
+            find_signal: {
+                text: "Bạn leo lên đỉnh đồi, tìm thấy một bộ phát tín hiệu cũ. Nhưng thực vật di chuyển mọc kín khu vực, rễ xúc tu quấn quanh thiết bị. Bạn thì thầm: 'Mình cần vô hiệu hóa chúng trước.'",
+                choices: [
+                    { text: "Dùng bình xịt hóa học", next: "use_chemical_signal", effects: { inventory: { chemical: -1 }, morale: -10 } },
+                    { text: "Cắt rễ bằng dao", next: "cut_signal", effects: { health: -20, morale: -15 } },
+                    { text: "Bỏ qua và quay lại", next: "lab_entry", effects: { morale: -10, danger: 20 } }
+                ]
+            },
+            use_chemical_signal: {
+                text: () => {
+                    if (inventory.chemical > 0) {
+                        return {
+                            text: "Bạn xịt hóa chất, làm thực vật co rúm lại. Bộ phát tín hiệu hoạt động, gửi tín hiệu cứu hộ. 'Giờ chỉ cần chờ... hoặc tiếp tục điều tra,' bạn nghĩ.",
+                            effects: { inventory: { signal: 1 }, morale: 20 },
+                            choices: [
+                                { text: "Chờ cứu hộ", next: "wait_rescue", effects: { morale: 10, danger: 20 } },
+                                { text: "Quay lại phòng thí nghiệm", next: "dna_storage", effects: { morale: -10, danger: 40 } },
+                                { text: "Đối đầu X13", next: "confront_alpha", effects: { morale: -20, danger: 50 } }
+                            ]
+                        };
+                    } else {
+                        return {
+                            text: "Bạn không có bình xịt! Thực vật quấn lấy bạn, enzyme phân giải cơ thể bạn trong đau đớn.",
+                            ending: "Bad Ending: Bị thực vật di chuyển tiêu diệt."
+                        };
+                    }
+                }
+            },
+            cut_signal: {
+                text: "Bạn dùng dao cắt rễ, nhưng enzyme phun vào mặt bạn. Bạn kích hoạt được bộ phát tín hiệu, nhưng cơ thể yếu đi nhanh chóng. 'Mình... phải cầm cự,' bạn rên rỉ.",
+                effects: { inventory: { signal: 1 }, health: -30, morale: -20 },
+                choices: [
+                    { text: "Chờ cứu hộ", next: "wait_rescue", effects: { morale: 10, danger: 20 } },
+                    { text: "Quay lại phòng thí nghiệm", next: "dna_storage", effects: { morale: -10, danger: 40 } },
+                    { text: "Nghỉ ngơi", next: "rest_forest", effects: { morale: 10, health: 10 } }
+                ]
+            },
+            wait_rescue: {
+                text: () => {
+                    if (stats.data >= 50) {
+                        return {
+                            text: "Trực thăng cứu hộ đến, bạn mang theo ổ cứng đầy dữ liệu. Thế giới sẽ biết sự thật về X13, và bạn tiêu diệt được Alpha trước khi rời đi.",
+                            ending: "Happy Ending: Mang dữ liệu về, tiêu diệt X13, cứu thế giới."
+                        };
+                    } else {
+                        return {
+                            text: "Trực thăng cứu hộ đến, nhưng bạn không mang đủ dữ liệu. Tổ chức bí mật bắt bạn quay lại đảo để tiếp tục nhiệm vụ.",
+                            ending: "Vòng Lặp Ending: Bị đưa lại đảo vì dữ liệu không đủ."
+                        };
+                    }
+                }
+            },
+            dna_storage: {
+                text: "Bạn đến khu lưu trữ DNA, máy tính chính vẫn hoạt động, nhưng cần pin dự phòng để tải dữ liệu. Một bóng người xuất hiện ở góc phòng – X13, mắt phát sáng, gầm gừ: 'Ngươi nghĩ ngươi hiểu chúng ta? Ngươi chỉ là con mồi!' Bạn phải hành động nhanh.",
+                timeLimit: 30,
+                choices: [
+                    { text: "Thuyết phục X13", next: "persuade_alpha", effects: { morale: -10, danger: 40 } },
+                    { text: "Đối đầu X13", next: "confront_alpha", effects: { morale: -20, danger: 50 } },
+                    { text: "Trốn xuống tầng hầm", next: "basement", effects: { morale: -5, danger: 40 } }
+                ]
+            },
+            persuade_alpha: {
+                text: "Bạn nói với X13: 'Tôi không muốn hại anh... hãy để tôi lấy dữ liệu và rời đi.' Nó nghiêng đầu, mắt sáng rực: 'Ngươi sẽ phản bội, như họ.' Nó đồng ý thả bạn, nhưng bạn cảm thấy nó vẫn theo dõi.",
+                effects: { morale: 10, danger: 30 },
+                choices: [
+                    { text: "Tìm pin dự phòng ở tầng hầm", next: "basement", effects: { morale: -10, danger: 40 } },
+                    { text: "Tải dữ liệu ngay", next: "download_data", effects: { morale: -10, danger: 30 } },
+                    { text: "Tìm đường thoát đảo", next: "escape_island", effects: { morale: -5, danger: 30 } }
+                ]
+            },
+            confront_alpha: {
+                text: () => {
+                    if (inventory.tranquilizer > 0) {
+                        return {
+                            text: "Bạn bắn súng gây mê, làm X13 ngã xuống. Bạn lấy mẫu máu của nó, nhưng nó gầm lên: 'Ngươi sẽ hối tiếc!' Bạn chạy thoát, nhưng cơ thể mệt mỏi.",
+                            effects: { data: 20, inventory: { sample: 1 }, health: -20, morale: 10 },
+                            choices: [
+                                { text: "Tìm pin dự phòng ở tầng hầm", next: "basement", effects: { morale: -10, danger: 40 } },
+                                { text: "Tải dữ liệu ngay", next: "download_data", effects: { morale: -10, danger: 30 } },
+                                { text: "Tìm đường thoát đảo", next: "escape_island", effects: { morale: -5, danger: 30 } }
+                            ]
+                        };
+                    } else {
+                        return {
+                            text: "Bạn đối đầu X13 bằng dao, nhưng nó quá mạnh. Một cú đấm của nó khiến bạn ngã, và móng vuốt xé toạc bạn. Mọi thứ chìm vào bóng tối.",
+                            ending: "Bad Ending: Bị X13 tiêu diệt, nhiệm vụ thất bại."
+                        };
+                    }
+                }
+            },
+            basement: {
+                text: "Tầng hầm tối om, mùi tử khí nồng nặc. Bạn tìm thấy pin dự phòng, nhưng một sinh vật tàng hình hiện ra khi máu từ vết xước của bạn dính vào nó. 'Nó ở ngay đây!' bạn hét thầm, tay nắm chặt đèn pin.",
+                effects: { inventory: { battery: 1 }, morale: -15, danger: 50 },
+                choices: [
+                    { text: "Dùng máu để dụ nó", next: "bait_invisible_basement", effects: { health: -15, morale: -10 } },
+                    { text: "Dùng súng gây mê", next: "shoot_invisible_basement", effects: { inventory: { tranquilizer: -1 }, morale: -15 } },
+                    { text: "Chạy thoát", next: "escape_basement", effects: { morale: -10, health: -10 } }
+                ]
+            },
+            bait_invisible_basement: {
+                text: "Bạn cắt tay, dụ sinh vật tàng hình hiện hình. Bạn bắn nó bằng súng gây mê, lấy mẫu da. Nhưng vết thương làm bạn yếu đi. 'Mình cần tải dữ liệu và rời khỏi đây,' bạn nghĩ.",
+                effects: { data: 15, inventory: { sample: 1 }, health: -20, morale: 10 },
+                choices: [
+                    { text: "Tải dữ liệu ở khu lưu trữ", next: "download_data", effects: { morale: -10, danger: 30 } },
+                    { text: "Tìm đường thoát đảo", next: "escape_island", effects: { morale: -5, danger: 30 } },
+                    { text: "Nghỉ ngơi", next: "rest_lab", effects: { morale: 10, health: 10 } }
+                ]
+            },
+            shoot_invisible_basement: {
+                text: () => {
+                    if (inventory.tranquilizer > 0) {
+                        return {
+                            text: "Bạn bắn súng gây mê, làm sinh vật tàng hình ngã. Bạn lấy mẫu da, cảm thấy tự tin hơn. 'Còn một bước nữa thôi,' bạn nghĩ.",
+                            effects: { data: 15, inventory: { sample: 1 }, morale: 15 },
+                            choices: [
+                                { text: "Tải dữ liệu ở khu lưu trữ", next: "download_data", effects: { morale: -10, danger: 30 } },
+                                { text: "Tìm đường thoát đảo", next: "escape_island", effects: { morale: -5, danger: 30 } },
+                                { text: "Nghỉ ngơi", next: "rest_lab", effects: { morale: 10, health: 10 } }
+                            ]
+                        };
+                    } else {
+                        return {
+                            text: "Súng hết đạn! Sinh vật tàng hình xé toạc bạn, máu loang trên sàn tầng hầm.",
+                            ending: "Bad Ending: Bị sinh vật tàng hình giết trong tầng hầm."
+                        };
+                    }
+                }
+            },
+            escape_basement: {
+                text: "Bạn chạy thoát tầng hầm, nhưng sinh vật tàng hình cào rách lưng bạn. Bạn lê bước về khu lưu trữ, nhưng tinh thần suy sụp. 'Mình không thể tiếp tục thế này,' bạn rên rỉ.",
+                effects: { health: -30, morale: -20 },
+                choices: [
+                    { text: "Tải dữ liệu ở khu lưu trữ", next: "download_data", effects: { morale: -10, danger: 30 } },
+                    { text: "Tìm đường thoát đảo", next: "escape_island", effects: { morale: -5, danger: 30 } },
+                    { text: "Nghỉ ngơi", next: "rest_lab", effects: { morale: 10, health: 10 } }
+                ]
+            },
+            download_data: {
+                text: () => {
+                    if (inventory.battery > 0) {
+                        return {
+                            text: "Bạn cắm pin dự phòng, máy tính khởi động. Dữ liệu DNA của X13 và các sinh vật khác được tải vào ổ cứng. 'Đây là chìa khóa để hiểu mọi thứ,' bạn nghĩ. Nhưng X13 xuất hiện lại, gầm gừ: 'Ngươi không được rời đi!'",
+                            effects: { data: 30, inventory: { drive: 1 }, morale: -10, danger: 50 },
+                            choices: [
+                                { text: "Đối đầu X13", next: "confront_alpha_final", effects: { morale: -20, danger: 50 } },
+                                { text: "Tìm đường thoát đảo", next: "escape_island", effects: { morale: -5, danger: 30 } },
+                                { text: "Đốt trụ sở nghiên cứu", next: "burn_base", effects: { morale: -10, danger: 40 } }
+                            ]
+                        };
+                    } else {
+                        return {
+                            text: "Không có pin dự phòng, máy tính không hoạt động. X13 xuất hiện, đập vỡ máy tính và xé toạc bạn. Mọi thứ chìm vào bóng tối.",
+                            ending: "Bad Ending: Thất bại trong việc tải dữ liệu, bị X13 giết."
+                        };
+                    }
+                }
+            },
+            confront_alpha_final: {
+                text: () => {
+                    if (inventory.tranquilizer > 0 || inventory.chemical > 0) {
+                        return {
+                            text: "Bạn dùng súng gây mê và bình xịt hóa học để hạ X13. Nó ngã xuống, máu chảy ra từ mắt. Bạn lấy mẫu cuối cùng, cảm thấy nhiệm vụ hoàn thành. 'Mình phải rời khỏi đây,' bạn nghĩ.",
+                            effects: { data: 20, inventory: { sample: 1 }, health: -20, morale: 20 },
+                            choices: [
+                                { text: "Tìm đường thoát đảo", next: "escape_island", effects: { morale: -5, danger: 30 } },
+                                { text: "Đốt trụ sở nghiên cứu", next: "burn_base", effects: { morale: -10, danger: 40 } },
+                                { text: "Tìm nhật ký ẩn", next: "find_secret_journal", effects: { morale: -10, data: 15 } }
+                            ]
+                        };
+                    } else {
+                        return {
+                            text: "Bạn không đủ vũ khí để hạ X13. Nó lao tới, móng vuốt xé toạc bạn. Mọi hy vọng tan biến.",
+                            ending: "Bad Ending: Bị X13 tiêu diệt, nhiệm vụ thất bại."
+                        };
+                    }
+                }
+            },
+            find_secret_journal: {
+                text: "Bạn tìm thấy nhật ký ẩn của nhà khoa học trưởng trong két sắt. Nó viết: 'Tổ chức đứng sau X13 sẽ không dừng lại. Hủy hòn đảo này, hoặc nhân loại sẽ diệt vong.' Bạn cảm thấy trọng trách lớn lao, nhưng cơ thể kiệt sức.",
+                effects: { data: 20, morale: 10 },
+                choices: [
+                    { text: "Đốt trụ sở nghiên cứu", next: "burn_base", effects: { morale: -10, danger: 40 } },
+                    { text: "Tìm đường thoát đảo", next: "escape_island", effects: { morale: -5, danger: 30 } },
+                    { text: "Chế vaccine", next: "make_vaccine", effects: { morale: 20, data: 15 } }
+                ]
+            },
+            burn_base: {
+                text: "Bạn đổ hóa chất khắp căn cứ và châm lửa. Ngọn lửa nuốt chửng mọi thứ – dữ liệu, sinh vật, và bí mật của X13. Bạn thoát ra bằng thuyền nhỏ, nhìn hòn đảo cháy rụi. Không ai biết sự thật, nhưng bạn đã xóa sạch mối đe dọa.",
+                ending: "Xóa Sạch Ending: Hòn đảo bị thiêu rụi, bí mật chôn vùi mãi mãi."
+            },
+            escape_island: {
+                text: () => {
+                    if (stats.data >= 50 && inventory.vaccine) {
+                        return {
+                            text: "Bạn rời đảo bằng thuyền nhỏ, mang theo ổ cứng và vaccine. Thế giới được cứu nhờ vaccine, nhưng bạn không được công nhận. 'Mình đã làm điều đúng đắn,' bạn nghĩ.",
+                            ending: "Anh Hùng Ending: Phát triển vaccine, cứu nhân loại vô danh."
+                        };
+                    } else if (stats.data >= 50) {
+                        return {
+                            text: "Bạn rời đảo với ổ cứng đầy dữ liệu. Các nhà khoa học sửng sốt trước phát hiện về X13. Bạn trở thành người hùng, nhưng ký ức về đảo vẫn ám ảnh.",
+                            ending: "Happy Ending: Mang dữ liệu về, giải mã bí mật X13."
+                        };
+                    } else if (inventory.signal) {
+                        return {
+                            text: "Bạn rời đảo bằng thuyền nhỏ, nhưng không mang đủ dữ liệu. Tâm trí bạn hoảng loạn, ám ảnh bởi những sinh vật. 'Mình sống sót... nhưng để làm gì?'",
+                            ending: "Sống Sót Ending: Thoát đảo, nhưng tâm trí tan vỡ."
+                        };
+                    } else {
+                        return {
+                            text: "Bạn cố rời đảo, nhưng ký sinh bám vào thuyền. Chúng chiếm cơ thể bạn, và bạn trở thành một trong số chúng.",
+                            ending: "Biến Dị Ending: Bị nhiễm, bạn trở thành quái vật."
+                        };
+                    }
+                }
+            },
+            rest_forest: {
+                text: "Bạn nghỉ ngơi trong rừng, cố lấy lại bình tĩnh. Nhưng tiếng rít của sinh vật khiến bạn không thể thư giãn hoàn toàn. 'Mình cần tiếp tục... không thể dừng lại,' bạn tự nhủ.",
+                effects: { morale: 10, health: 10 },
+                choices: [
+                    { text: "Quay lại căn cứ", next: "lab_entry", effects: { morale: -10, danger: 20 } },
+                    { text: "Tìm bộ phát tín hiệu", next: "find_signal", effects: { morale: -10, danger: 40 } },
+                    { text: "Khám phá sâu hơn trong rừng", next: "deep_forest", effects: { morale: -10, danger: 40 } }
+                ]
+            },
+            rest_lab: {
+                text: "Bạn nghỉ trong phòng thí nghiệm, dùng bộ sơ cứu để hồi phục. Tinh thần bạn ổn định hơn, nhưng tiếng gầm từ xa nhắc nhở bạn về nguy hiểm. 'Mình phải nhanh lên,' bạn nghĩ.",
+                effects: { morale: 10, health: 20 },
+                choices: [
+                    { text: "Tải dữ liệu ở khu lưu trữ", next: "download_data", effects: { morale: -10, danger: 30 } },
+                    { text: "Tìm đường thoát đảo", next: "escape_island", effects: { morale: -5, danger: 30 } },
+                    { text: "Tìm bình xịt hóa học", next: "find_chemical", effects: { morale: -10, danger: 30 } }
+                ]
+            }
+        };
+
+        let currentNode = "start";
+        let timeLeft = 0;
+        let timerInterval = null;
+
+        function updateStats(effects) {
+            if (effects) {
+                stats.morale = Math.max(0, Math.min(100, stats.morale + (effects.morale || 0)));
+                stats.health = Math.max(0, Math.min(100, stats.health + (effects.health || 0)));
+                stats.data = Math.max(0, stats.data + (effects.data || 0));
+                stats.danger = Math.max(10, Math.min(100, stats.danger + (effects.danger || 0)));
+                if (effects.inventory) {
+                    for (let key in effects.inventory) {
+                        inventory[key] = (inventory[key] || 0) + effects.inventory[key];
+                        if (inventory[key] < 0) inventory[key] = 0;
+                    }
+                    if (effects.inventory.tools) {
+                        inventory.tools.push(...effects.inventory.tools);
+                    }
+                }
+            }
+
+            document.getElementById("morale").innerText = stats.morale;
+            document.getElementById("health").innerText = stats.health;
+            document.getElementById("data").innerText = stats.data;
+            document.getElementById("danger").innerText = stats.danger;
+
+            let inventoryText = "Tài nguyên: ";
+            for (let key in inventory) {
+                if (key !== "tools" && inventory[key] > 0) {
+                    inventoryText += `${key}: ${inventory[key]}, `;
+                }
+            }
+            inventoryText += `Công cụ: ${inventory.tools.join(", ")}`;
+            document.getElementById("inventory").innerText = inventoryText;
+
+            if (stats.health <= 0) {
+                currentNode = "bad_ending";
+                displayCurrentNode();
+            } else if (stats.morale <= 0) {
+                currentNode = "loop_ending";
+                displayCurrentNode();
+            }
+        }
+
+        function startTimer(limit) {
+            if (timerInterval) clearInterval(timerInterval);
+            timeLeft = limit;
+            const timerElement = document.getElementById("timer");
+            timerElement.innerText = `Thời gian còn lại: ${timeLeft} giây`;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.innerText = `Thời gian còn lại: ${timeLeft} giây`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    currentNode = "time_out";
+                    displayCurrentNode();
+                }
+            }, 1000);
+        }
+
+        function displayCurrentNode() {
+            let node = storyNodes[currentNode] || {
+                text: "Bạn kiệt sức, ngã xuống sàn phòng thí nghiệm. Sinh vật bao vây, và bóng tối nuốt chửng bạn.",
+                ending: "Bad Ending: Chết trong tay quái vật, nhiệm vụ thất bại."
+            };
+
+            if (typeof node.text === "function") {
+                node = node.text();
+            }
+
+            document.getElementById("story-text").innerHTML = node.text.replace(/\n/g, "<br>");
+            const choicesContainer = document.getElementById("choices");
+            const endingContainer = document.getElementById("ending");
+            choicesContainer.innerHTML = "";
+            endingContainer.innerText = "";
+
+            if (node.timeLimit) {
+                startTimer(node.timeLimit);
+            } else {
+                clearInterval(timerInterval);
+                document.getElementById("timer").innerText = "";
+            }
+
+            if (node.effects) {
+                updateStats(node.effects);
+            }
+
+            if (node.choices) {
+                node.choices.forEach(choice => {
+                    const button = document.createElement("button");
+                    button.innerText = choice.text;
+                    button.className = "choice-btn";
+                    button.onclick = () => {
+                        clearInterval(timerInterval);
+                        currentNode = choice.next;
+                        updateStats(choice.effects);
+                        displayCurrentNode();
+                    };
+                    choicesContainer.appendChild(button);
+                });
+            } else {
+                clearInterval(timerInterval);
+                endingContainer.innerText = node.ending;
+                const restartButton = document.createElement("button");
+                restartButton.innerText = "Chơi lại từ đầu";
+                restartButton.className = "choice-btn restart-btn";
+                restartButton.onclick = () => {
+                    stats = { morale: 100, health: 100, data: 0, danger: 10 };
+                    inventory = {
+                        tranquilizer: 3, knife: 1, flashlight: 1, medkit: 0, battery: 0,
+                        chemical: 0, sample: 0, drive: 0, signal: 0,
+                        tools: ["Súng gây mê (3 đạn)", "Dao phẫu thuật", "Đèn pin"]
+                    };
+                    currentNode = "start";
+                    updateStats();
+                    displayCurrentNode();
+                };
+                choicesContainer.appendChild(restartButton);
+            }
+        }
+
+        window.onload = () => {
+            displayCurrentNode();
+        };
+    </script>
+</body>
+</html>

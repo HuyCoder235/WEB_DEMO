@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sống Sót Trên Hòn Đảo Hoang</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0e4d7;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #228B22;
+            text-shadow: 0 0 5px #90EE90;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background-color: #e0f0e0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .stat {
+            font-weight: bold;
+        }
+        .story-text {
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        .dialogue {
+            background-color: #f0f8f0;
+            padding: 10px;
+            border-left: 4px solid #228B22;
+            margin: 10px 0;
+        }
+        .inventory {
+            background-color: #f0f8f0;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .choice-btn {
+            background-color: #228B22;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        .choice-btn:hover {
+            background-color: #1a6b1a;
+        }
+        .ending {
+            font-weight: bold;
+            color: #ff4500;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .restart-btn {
+            background-color: #4682b4;
+            margin-top: 10px;
+        }
+        .restart-btn:hover {
+            background-color: #36648b;
+        }
+        .timer {
+            color: #ff4500;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏝️ Sống Sót Trên Hòn Đảo Hoang</h1>
+        <div id="stats" class="stats">
+            <span class="stat">Thể lực: <span id="health">100</span>%</span>
+            <span class="stat">Đói: <span id="hunger">100</span>%</span>
+            <span class="stat">Khát: <span id="thirst">100</span>%</span>
+            <span class="stat">Tinh thần: <span id="morale">100</span>%</span>
+        </div>
+        <div id="inventory" class="inventory">Tài nguyên: Ba lô (Dao nhỏ, Đánh lửa, 2m dây thừng)</div>
+        <div id="timer" class="timer"></div>
+        <div id="story-text" class="story-text"></div>
+        <div id="choices" class="choices"></div>
+        <div id="ending" class="ending"></div>
+    </div>
+
+    <script>
+        let stats = {
+            health: 100,
+            hunger: 100,
+            thirst: 100,
+            morale: 100
+        };
+
+        let inventory = {
+            wood: 0,
+            stone: 0,
+            vine: 0,
+            leaf: 0,
+            fish: 0,
+            fruit: 0,
+            water: 0,
+            shell: 0,
+            tools: ["Dao nhỏ", "Đánh lửa", "2m dây thừng"]
+        };
+
+        let experience = 0; // Kinh nghiệm giữ lại nếu Loop Ending
+
+        const storyNodes = {
+            start: {
+                text: "Bạn tỉnh dậy trên bãi biển, cát nóng bỏng dưới lưng. Tiếng sóng vỗ đều đều, nhưng ký ức về vụ đắm tàu vẫn mơ hồ. Ba lô nhỏ bên cạnh chứa một con dao nhỏ, bộ đánh lửa, và 2m dây thừng. Đầu bạn đau nhức, nhưng bạn tự nhủ: 'Mình phải sống sót... phải tìm cách rời khỏi đây!' Mặt trời đang lên cao, và bạn cảm thấy khát cháy cổ. Bạn quyết định hành động.",
+                timeLimit: 60,
+                choices: [
+                    { text: "Khám phá khu rừng", next: "explore_forest", effects: { thirst: -10, hunger: -5 } },
+                    { text: "Lập trại gần bờ biển", next: "camp_beach", effects: { morale: 10, thirst: -10 } },
+                    { text: "Kiểm tra ba lô và nghỉ ngơi", next: "check_backpack", effects: { health: 10, morale: 5 } }
+                ]
+            },
+            check_backpack: {
+                text: "Bạn kiểm tra ba lô: một con dao nhỏ, bộ đánh lửa, và ít dây thừng. Bạn ngồi nghỉ dưới bóng cây, cảm thấy cơ thể hồi phục đôi chút. Tuy nhiên, cái khát và đói bắt đầu rõ rệt hơn. Bạn tự nhủ: 'Không thể ngồi đây mãi, phải hành động!'",
+                choices: [
+                    { text: "Khám phá khu rừng", next: "explore_forest", effects: { thirst: -10, hunger: -5 } },
+                    { text: "Lập trại gần bờ biển", next: "camp_beach", effects: { morale: 10, thirst: -10 } },
+                    { text: "Tìm thức ăn gần bờ biển", next: "find_sea_food", effects: { thirst: -15, hunger: -10 } }
+                ]
+            },
+            explore_forest: {
+                text: "Bạn bước vào khu rừng rậm, nơi cây cối cao lớn che kín ánh sáng. Tiếng chim lạ và côn trùng râm ran khiến bạn căng thẳng. Đi được một lúc, bạn nghe tiếng nước chảy đâu đó, nhưng cũng cảm nhận được ánh mắt của thú hoang đang rình rập. Bạn tự hỏi: 'Nên tìm nước hay cẩn thận với thú dữ?'",
+                timeLimit: 45,
+                choices: [
+                    { text: "Tìm nguồn nước", next: "find_water", effects: { thirst: -10, health: -5 } },
+                    { text: "Chạm trán thú hoang", next: "encounter_beast", effects: { morale: -10, health: -10 } },
+                    { text: "Thu thập tài nguyên rừng", next: "gather_forest", effects: { hunger: -10, thirst: -10, inventory: { wood: 3, vine: 2 } } }
+                ]
+            },
+            gather_forest: {
+                text: "Bạn thu thập được 3 khúc gỗ và 2 đoạn dây leo từ rừng. Nhưng trong lúc chặt cây, bạn sơ ý làm tay bị xước, máu rỉ ra. Bạn nghĩ: 'Mình cần cẩn thận hơn, nhưng ít nhất đã có ít tài nguyên.' Cái đói bắt đầu khiến bụng bạn réo lên.",
+                choices: [
+                    { text: "Tìm nguồn nước", next: "find_water", effects: { thirst: -10, health: -5 } },
+                    { text: "Tìm trái cây trong rừng", next: "find_fruit", effects: { hunger: -10, thirst: -10 } },
+                    { text: "Quay lại bờ biển", next: "camp_beach", effects: { morale: 5, thirst: -10 } }
+                ]
+            },
+            find_water: {
+                text: "Bạn lần theo tiếng nước, đến một con suối nhỏ trong rừng. Nước trong veo, nhưng bạn lo lắng: 'Nó có sạch không? Nếu uống nhầm, mình sẽ gặp rắc rối...' Bạn nhìn bộ đánh lửa trong ba lô, nghĩ đến việc đun sôi nước.",
+                choices: [
+                    { text: "Đun sôi nước để uống", next: "boil_water", effects: { thirst: -10, inventory: { wood: -1 } } },
+                    { text: "Uống trực tiếp", next: "drink_raw", effects: { thirst: 30, health: -20 } },
+                    { text: "Thu thập nước vào vỏ sò", next: "collect_water", effects: { inventory: { shell: 2, water: 2 }, thirst: -10 } }
+                ]
+            },
+            boil_water: {
+                text: "Bạn dùng bộ đánh lửa và ít gỗ để đun sôi nước. Nước nóng làm bạn cảm thấy an tâm. Sau khi uống, bạn cảm thấy khát dịu đi, nhưng cái đói vẫn dai dẳng. Bạn tự nhủ: 'Mình cần tìm thức ăn, hoặc ít nhất là một nơi an toàn để nghỉ.'",
+                effects: { thirst: 50, morale: 10 },
+                choices: [
+                    { text: "Tìm trái cây trong rừng", next: "find_fruit", effects: { hunger: -10, thirst: -10 } },
+                    { text: "Quay lại bờ biển lập trại", next: "camp_beach", effects: { morale: 10, thirst: -10 } },
+                    { text: "Khám phá sâu hơn vào rừng", next: "deep_forest", effects: { health: -10, thirst: -10 } }
+                ]
+            },
+            drink_raw: {
+                text: "Bạn uống trực tiếp từ suối, cảm thấy sảng khoái ngay lập tức. Nhưng vài giờ sau, bụng bạn quặn đau. 'Chết tiệt... nước có vấn đề!' Bạn yếu đi rõ rệt, nhưng vẫn cố lê bước.",
+                effects: { health: -30, morale: -20 },
+                choices: [
+                    { text: "Nghỉ ngơi để hồi phục", next: "rest_recover", effects: { health: 10, morale: 5 } },
+                    { text: "Tìm trái cây để ăn", next: "find_fruit", effects: { hunger: -10, thirst: -10 } },
+                    { text: "Quay lại bờ biển", next: "camp_beach", effects: { morale: 5, thirst: -10 } }
+                ]
+            },
+            collect_water: {
+                text: "Bạn dùng vài vỏ sò tìm được gần suối để chứa nước, cẩn thận mang theo. 'Cái này sẽ hữu ích sau,' bạn nghĩ. Tuy nhiên, bạn vẫn cần uống gì đó ngay để cầm cự.",
+                effects: { morale: 10 },
+                choices: [
+                    { text: "Đun sôi nước để uống", next: "boil_water", effects: { thirst: -10, inventory: { wood: -1 } } },
+                    { text: "Tìm trái cây trong rừng", next: "find_fruit", effects: { hunger: -10, thirst: -10 } },
+                    { text: "Quay lại bờ biển", next: "camp_beach", effects: { morale: 5, thirst: -10 } }
+                ]
+            },
+            encounter_beast: {
+                text: "Một con lợn rừng khổng lồ xuất hiện, mắt đỏ rực. Nó gầm gừ, chuẩn bị tấn công. Bạn nắm chặt con dao nhỏ, nhưng nó không đủ để đối đầu. 'Mình cần vũ khí tốt hơn... hoặc chạy!' Tim bạn đập thình thịch.",
+                timeLimit: 30,
+                choices: [
+                    { text: "Chạy thoát", next: "escape_beast", effects: { health: -10, morale: -10 } },
+                    { text: "Chế vũ khí thô sơ", next: "craft_weapon", effects: { health: -15, inventory: { wood: -1, stone: -1 } } },
+                    { text: "Đối đầu với con dao nhỏ", next: "fight_beast", effects: { health: -50, morale: -20 } }
+                ]
+            },
+            escape_beast: {
+                text: "Bạn chạy thục mạng, cành cây quất vào mặt đau rát. Lợn rừng bỏ cuộc, nhưng bạn kiệt sức và hoảng loạn. 'Mình không thể bất cẩn thế này nữa...' Bạn cần lấy lại bình tĩnh.",
+                choices: [
+                    { text: "Tìm nguồn nước", next: "find_water", effects: { thirst: -10, health: -5 } },
+                    { text: "Quay lại bờ biển", next: "camp_beach", effects: { morale: 5, thirst: -10 } },
+                    { text: "Nghỉ ngơi", next: "rest_recover", effects: { health: 10, morale: 5 } }
+                ]
+            },
+            craft_weapon: {
+                text: "Bạn dùng dao nhỏ, gỗ, và đá để chế một cây giáo thô sơ. Lợn rừng lao tới, nhưng bạn đâm trúng nó, khiến nó bỏ chạy. Bạn thở phào: 'May quá, nhưng mình mệt lắm rồi.' Cây giáo giờ là tài sản quý giá.",
+                effects: { morale: 20, inventory: { tools: ["Giáo gỗ"] } },
+                choices: [
+                    { text: "Săn lợn rừng để lấy thịt", next: "hunt_pig", effects: { health: -20, hunger: -10 } },
+                    { text: "Tìm nguồn nước", next: "find_water", effects: { thirst: -10, health: -5 } },
+                    { text: "Quay lại bờ biển", next: "camp_beach", effects: { morale: 5, thirst: -10 } }
+                ]
+            },
+            fight_beast: {
+                text: "Bạn đối đầu lợn rừng với con dao nhỏ, nhưng nó quá mạnh. Một cú húc khiến bạn ngã, và móng vuốt của nó xé toạc bạn. Mọi thứ chìm vào bóng tối.",
+                ending: "Bad Ending: Bị lợn rừng giết, hành trình kết thúc."
+            },
+            hunt_pig: {
+                text: "Với cây giáo, bạn lần theo dấu vết lợn rừng. Sau một cuộc săn căng thẳng, bạn hạ được nó, thu được thịt tươi. Bạn tự hào: 'Đây là bữa ăn ngon nhất từ trước đến giờ!' Nhưng săn bắn làm bạn kiệt sức.",
+                effects: { hunger: 50, morale: 20, inventory: { fish: 3 } },
+                choices: [
+                    { text: "Nướng thịt và ăn", next: "cook_meat", effects: { hunger: 30, morale: 10, inventory: { wood: -1 } } },
+                    { text: "Quay lại bờ biển lập trại", next: "camp_beach", effects: { morale: 5, thirst: -10 } },
+                    { text: "Khám phá sâu hơn vào rừng", next: "deep_forest", effects: { health: -10, thirst: -10 } }
+                ]
+            },
+            cook_meat: {
+                text: "Bạn dùng bộ đánh lửa để nướng thịt. Mùi thơm làm bạn chảy nước miếng. Sau khi ăn, bạn cảm thấy no nê và tinh thần phấn chấn. 'Mình có thể làm được... mình sẽ sống sót!'",
+                effects: { hunger: 20, morale: 10 },
+                choices: [
+                    { text: "Lập trại trong rừng", next: "camp_forest", effects: { morale: 10, thirst: -10 } },
+                    { text: "Quay lại bờ biển", next: "camp_beach", effects: { morale: 5, thirst: -10 } },
+                    { text: "Khám phá sâu hơn", next: "deep_forest", effects: { health: -10, thirst: -10 } }
+                ]
+            },
+            camp_beach: {
+                text: "Bạn lập trại gần bờ biển, dựng một lều tạm bằng lá và gỗ. Ngọn lửa trại cháy sáng, làm bạn cảm thấy an toàn hơn. Bạn nghĩ: 'Mình cần thức ăn và nước, nhưng ít nhất tối nay có chỗ nghỉ.' Gió biển mang theo mùi muối, nhưng cái khát vẫn dai dẳng.",
+                effects: { morale: 10 },
+                choices: [
+                    { text: "Xây nhà tạm kiên cố hơn", next: "build_shelter", effects: { health: -20, inventory: { wood: -3, leaf: -2 } } },
+                    { text: "Tìm thức ăn từ biển", next: "find_sea_food", effects: { thirst: -15, hunger: -10 } },
+                    { text: "Khám phá khu rừng", next: "explore_forest", effects: { thirst: -10, hunger: -5 } }
+                ]
+            },
+            build_shelter: {
+                text: "Bạn dùng gỗ và lá để xây một ngôi nhà tạm kiên cố. Mồ hôi nhễ nhại, nhưng bạn cảm thấy tự hào: 'Cái này sẽ giữ mình an toàn qua đêm.' Tinh thần bạn lên cao, nhưng cơ thể mệt mỏi.",
+                effects: { morale: 20, health: -10 },
+                choices: [
+                    { text: "Nghỉ ngơi trong nhà tạm", next: "rest_shelter", effects: { health: 20, morale: 10 } },
+                    { text: "Tìm thức ăn từ biển", next: "find_sea_food", effects: { thirst: -15, hunger: -10 } },
+                    { text: "Khám phá khu rừng", next: "explore_forest", effects: { thirst: -10, hunger: -5 } }
+                ]
+            },
+            rest_shelter: {
+                text: "Bạn nằm trong nhà tạm, nghe tiếng sóng vỗ. Cơ thể bạn hồi phục, và tinh thần ổn định hơn. 'Mình cần lập kế hoạch dài hơi... phải rời khỏi đảo này.' Bạn bắt đầu nghĩ đến việc chế bè hoặc gửi tín hiệu.",
+                choices: [
+                    { text: "Chế bè để rời đảo", next: "build_raft", effects: { health: -20, inventory: { wood: -5, vine: -3 } } },
+                    { text: "Tạo tín hiệu khói", next: "signal_smoke", effects: { morale: 10, inventory: { wood: -2 } } },
+                    { text: "Tìm thức ăn từ biển", next: "find_sea_food", effects: { thirst: -15, hunger: -10 } }
+                ]
+            },
+            find_sea_food: {
+                text: "Bạn lội xuống biển, dùng dao nhỏ để bắt cá và nhặt vỏ sò. Nhưng một con sứa cọ vào chân bạn, gây ngứa rát. Bạn thu được ít cá, nhưng cơ thể yếu đi. 'Mình cần cẩn thận hơn... biển không an toàn như tưởng.'",
+                effects: { health: -20, hunger: 20, inventory: { fish: 2, shell: 1 } },
+                choices: [
+                    { text: "Nướng cá để ăn", next: "cook_fish", effects: { hunger: 30, morale: 10, inventory: { wood: -1 } } },
+                    { text: "Quay lại trại nghỉ ngơi", next: "rest_shelter", effects: { health: 20, morale: 10 } },
+                    { text: "Khám phá khu rừng", next: "explore_forest", effects: { thirst: -10, hunger: -5 } }
+                ]
+            },
+            cook_fish: {
+                text: "Bạn nướng cá trên lửa trại, mùi thơm làm bạn quên đi cái đau từ vết sứa. Sau khi ăn, bạn cảm thấy no và tinh thần tốt hơn. 'Mình cần một kế hoạch dài hơi... có lẽ là chế bè hoặc tín hiệu.'",
+                effects: { hunger: 20, morale: 10 },
+                choices: [
+                    { text: "Chế bè để rời đảo", next: "build_raft", effects: { health: -20, inventory: { wood: -5, vine: -3 } } },
+                    { text: "Tạo tín hiệu khói", next: "signal_smoke", effects: { morale: 10, inventory: { wood: -2 } } },
+                    { text: "Khám phá sâu hơn vào rừng", next: "deep_forest", effects: { health: -10, thirst: -10 } }
+                ]
+            },
+            deep_forest: {
+                text: "Bạn đi sâu vào rừng, đến một khu vực cao. Từ đây, bạn thấy toàn cảnh đảo: bãi biển, rừng rậm, và một cột khói mỏng ở phía xa. 'Có người khác trên đảo này sao?' bạn tự hỏi. Nhưng đường xuống rất dốc, và bạn cảm thấy kiệt sức.",
+                effects: { health: -15, morale: 15 },
+                choices: [
+                    { text: "Đi theo tín hiệu khói", next: "follow_smoke", effects: { health: -10, thirst: -10 } },
+                    { text: "Khám phá hang động gần đó", next: "explore_cave", effects: { morale: -10, thirst: -10 } },
+                    { text: "Quay lại trại", next: "rest_shelter", effects: { health: 20, morale: 10 } }
+                ]
+            },
+            follow_smoke: {
+                text: "Bạn lần theo cột khói, đến một khu trại bỏ hoang. Một người sống sót khác xuất hiện, ánh mắt sắc lạnh: 'Ai đấy? Đảo này không đủ chỗ cho cả hai!' Bạn phải quyết định cách đối phó.",
+                timeLimit: 30,
+                choices: [
+                    { text: "Thuyết phục hợp tác", next: "ally_survivor", effects: { morale: 20 } },
+                    { text: "Đối đầu", next: "fight_survivor", effects: { health: -30, morale: -20 } },
+                    { text: "Rút lui lặng lẽ", next: "retreat_smoke", effects: { morale: -10, thirst: -10 } }
+                ]
+            },
+            ally_survivor: {
+                text: "Bạn thuyết phục người sống sót, tên là Kai. Anh ta chia sẻ một mảnh gương vỡ và nói: 'Dùng cái này để báo hiệu tàu bay qua.' Bạn cảm thấy hy vọng: 'Có đồng minh, mình sẽ mạnh hơn!'",
+                effects: { inventory: { tools: ["Gương vỡ"] }, morale: 20 },
+                choices: [
+                    { text: "Tạo tín hiệu khói với gương", next: "signal_mirror", effects: { morale: 10, inventory: { wood: -2 } } },
+                    { text: "Chế bè cùng Kai", next: "build_raft_ally", effects: { health: -15, inventory: { wood: -5, vine: -3 } } },
+                    { text: "Nghỉ ngơi và lên kế hoạch", next: "rest_shelter", effects: { health: 20, morale: 10 } }
+                ]
+            },
+            fight_survivor: {
+                text: "Bạn đối đầu Kai, nhưng anh ta mạnh hơn bạn nghĩ. Một nhát dao khiến bạn ngã gục, và bóng tối bao trùm.",
+                ending: "Bad Ending: Bị người sống sót giết, hành trình kết thúc."
+            },
+            retreat_smoke: {
+                text: "Bạn rút lui, nhưng Kai phát hiện và đuổi theo. Trong lúc chạy trốn, bạn vấp ngã và bị thương nặng. Bạn lê về trại, nhưng tinh thần suy sụp.",
+                effects: { health: -30, morale: -20 },
+                choices: [
+                    { text: "Nghỉ ngơi để hồi phục", next: "rest_shelter", effects: { health: 20, morale: 10 } },
+                    { text: "Tạo tín hiệu khói", next: "signal_smoke", effects: { morale: 10, inventory: { wood: -2 } } },
+                    { text: "Chế bè để rời đảo", next: "build_raft", effects: { health: -20, inventory: { wood: -5, vine: -3 } } }
+                ]
+            },
+            explore_cave: {
+                text: "Bạn bước vào hang động lạnh lẽo, nơi những bức vẽ cổ đại trên tường kể về cư dân cũ của đảo. Bạn tìm thấy một di vật – một mảnh ngọc khắc chữ: 'Kẻ sống sót sẽ tìm thấy ánh sáng.' Nhưng bóng tối trong hang làm bạn run sợ.",
+                effects: { morale: -10, inventory: { tools: ["Mảnh ngọc cổ"] } },
+                choices: [
+                    { text: "Giải mã di vật", next: "decode_relic", effects: { morale: 20, thirst: -10 } },
+                    { text: "Rời hang động", next: "rest_shelter", effects: { health: 20, morale: 10 } },
+                    { text: "Khám phá sâu hơn", next: "deep_cave", effects: { health: -15, morale: -15 } }
+                ]
+            },
+            decode_relic: {
+                text: "Bạn nghiên cứu mảnh ngọc, nhận ra nó chỉ đường đến một bãi đá ngầm – nơi có thể gửi tín hiệu mạnh hơn. 'Đây là chìa khóa để được cứu!' bạn reo lên. Tinh thần bạn tăng cao, nhưng cơ thể mệt mỏi.",
+                effects: { morale: 30 },
+                choices: [
+                    { text: "Tạo tín hiệu khói ở bãi đá ngầm", next: "signal_reef", effects: { morale: 10, inventory: { wood: -2 } } },
+                    { text: "Chế bè để rời đảo", next: "build_raft", effects: { health: -20, inventory: { wood: -5, vine: -3 } } },
+                    { text: "Nghỉ ngơi", next: "rest_shelter", effects: { health: 20, morale: 10 } }
+                ]
+            },
+            deep_cave: {
+                text: "Bạn đi sâu hơn, nhưng hang động sụp đổ một phần. Bạn bị mắc kẹt, không lối thoát. Bóng tối nuốt chửng bạn, và tinh thần sụp đổ.",
+                ending: "Bad Ending: Mắc kẹt trong hang, không ai tìm thấy bạn."
+            },
+            signal_smoke: {
+                text: "Bạn tạo tín hiệu khói bằng gỗ và lá. Khói bốc cao, nhưng không có dấu hiệu tàu hay máy bay. Bạn nghĩ: 'Mình cần kiên nhẫn, hoặc thử cách khác.' Tinh thần bạn dao động.",
+                effects: { morale: 5 },
+                choices: [
+                    { text: "Tiếp tục gửi tín hiệu", next: "keep_signaling", effects: { morale: 5, inventory: { wood: -2 } } },
+                    { text: "Chế bè để rời đảo", next: "build_raft", effects: { health: -20, inventory: { wood: -5, vine: -3 } } },
+                    { text: "Nghỉ ngơi", next: "rest_shelter", effects: { health: 20, morale: 10 } }
+                ]
+            },
+            keep_signaling: {
+                text: "Bạn tiếp tục gửi tín hiệu khói. Sau nhiều giờ, một chiếc trực thăng xuất hiện. Họ nhìn thấy bạn và đáp xuống. Bạn được cứu! 'Mình đã làm được... mình sống sót!'",
+                ending: "Rescue Ending: Được đội cứu hộ tìm thấy, bạn trở về an toàn."
+            },
+            signal_mirror: {
+                text: "Bạn dùng gương vỡ để phản chiếu ánh sáng mặt trời, kết hợp với khói. Một tàu tuần tra nhận tín hiệu và đến cứu bạn. Bạn ôm lấy Kai: 'Chúng ta đã làm được!'",
+                ending: "Rescue Ending: Nhờ gương và khói, bạn được cứu về đất liền."
+            },
+            signal_reef: {
+                text: "Bạn đến bãi đá ngầm, dùng mảnh ngọc để định vị và tạo tín hiệu khói. Một máy bay phát hiện, và đội cứu hộ đến ngay. Bạn mang theo mảnh ngọc, khám phá ra bí mật của đảo sau này.",
+                ending: "Secret Ending: Được cứu và khám phá bí mật cổ xưa của đảo."
+            },
+            build_raft: {
+                text: () => {
+                    if (inventory.wood >= 5 && inventory.vine >= 3 && inventory.fish >= 2) {
+                        return {
+                            text: "Bạn dùng gỗ, dây leo, và dự trữ cá để chế bè. Sau nhiều ngày lênh đênh, bạn tìm thấy đất liền. 'Mình đã sống sót... và tự do!'",
+                            ending: "Happy Ending: Tự chế bè, rời đảo an toàn."
+                        };
+                    } else {
+                        return {
+                            text: "Bạn cố chế bè, nhưng thiếu tài nguyên. Bè vỡ tan giữa biển, và bạn chìm vào bóng tối.",
+                            ending: "Bad Ending: Bè thất bại, bạn chết giữa biển."
+                        };
+                    }
+                }
+            },
+            build_raft_ally: {
+                text: "Bạn và Kai cùng chế bè, chia sẻ tài nguyên. Bè chắc chắn, và cả hai lênh đênh đến đất liền. Kai nắm tay bạn: 'Chúng ta là đội tuyệt vời!'",
+                ending: "Happy Ending: Cùng đồng minh, bạn rời đảo thành công."
+            },
+            rest_recover: {
+                text: "Bạn nghỉ ngơi, cố gắng lấy lại sức. Nhưng nếu không tìm thức ăn và nước, bạn sẽ không cầm cự lâu. Bạn viết vào nhật ký: 'Ngày mai, mình phải mạnh mẽ hơn.'",
+                effects: { health: 10, morale: 5 },
+                choices: [
+                    { text: "Khám phá khu rừng", next: "explore_forest", effects: { thirst: -10, hunger: -5 } },
+                    { text: "Tìm thức ăn từ biển", next: "find_sea_food", effects: { thirst: -15, hunger: -10 } },
+                    { text: "Lập trại gần bờ biển", next: "camp_beach", effects: { morale: 10, thirst: -10 } }
+                ]
+            },
+            camp_forest: {
+                text: "Bạn lập trại trong rừng, dùng lá và gỗ để làm lều. Lửa trại cháy sáng, nhưng tiếng thú hoang khiến bạn khó ngủ. 'Mình cần chuẩn bị tốt hơn... đảo này không thân thiện.'",
+                effects: { morale: 10 },
+                choices: [
+                    { text: "Chế bè để rời đảo", next: "build_raft", effects: { health: -20, inventory: { wood: -5, vine: -3 } } },
+                    { text: "Tạo tín hiệu khói", next: "signal_smoke", effects: { morale: 10, inventory: { wood: -2 } } },
+                    { text: "Khám phá sâu hơn", next: "deep_forest", effects: { health: -10, thirst: -10 } }
+                ]
+            },
+            time_out: {
+                text: "Bạn chần chừ quá lâu. Cơn khát và đói khiến bạn kiệt sức. Bạn ngã xuống cát, và bóng tối bao trùm.",
+                ending: "Bad Ending: Kiệt sức, bạn chết trên đảo."
+            }
+        };
+
+        let currentNode = "start";
+        let timeLeft = 0;
+        let timerInterval = null;
+
+        function updateStats(effects) {
+            if (effects) {
+                stats.health = Math.max(0, Math.min(100, stats.health + (effects.health || 0)));
+                stats.hunger = Math.max(0, Math.min(100, stats.hunger + (effects.hunger || 0)));
+                stats.thirst = Math.max(0, Math.min(100, stats.thirst + (effects.thirst || 0)));
+                stats.morale = Math.max(0, Math.min(100, stats.morale + (effects.morale || 0)));
+                if (effects.inventory) {
+                    for (let key in effects.inventory) {
+                        inventory[key] = (inventory[key] || 0) + effects.inventory[key];
+                        if (inventory[key] < 0) inventory[key] = 0;
+                    }
+                    if (effects.inventory.tools) {
+                        inventory.tools.push(...effects.inventory.tools);
+                    }
+                }
+            }
+
+            document.getElementById("health").innerText = stats.health;
+            document.getElementById("hunger").innerText = stats.hunger;
+            document.getElementById("thirst").innerText = stats.thirst;
+            document.getElementById("morale").innerText = stats.morale;
+
+            let inventoryText = "Tài nguyên: ";
+            for (let key in inventory) {
+                if (key !== "tools" && inventory[key] > 0) {
+                    inventoryText += `${key}: ${inventory[key]}, `;
+                }
+            }
+            inventoryText += `Công cụ: ${inventory.tools.join(", ")}`;
+            document.getElementById("inventory").innerText = inventoryText;
+
+            if (stats.health <= 0 || stats.hunger <= 0 || stats.thirst <= 0) {
+                currentNode = "bad_ending";
+                displayCurrentNode();
+            } else if (stats.morale <= 0) {
+                currentNode = "loop_ending";
+                displayCurrentNode();
+            }
+        }
+
+        function startTimer(limit) {
+            if (timerInterval) clearInterval(timerInterval);
+            timeLeft = limit;
+            const timerElement = document.getElementById("timer");
+            timerElement.innerText = `Thời gian còn lại: ${timeLeft} giây`;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.innerText = `Thời gian còn lại: ${timeLeft} giây`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    currentNode = "time_out";
+                    displayCurrentNode();
+                }
+            }, 1000);
+        }
+
+        function displayCurrentNode() {
+            let node = storyNodes[currentNode] || {
+                text: "Bạn kiệt sức hoàn toàn, ngã xuống cát. Hòn đảo này đã đánh bại bạn.",
+                ending: "Bad Ending: Chết vì kiệt sức trên đảo."
+            };
+
+            if (typeof node.text === "function") {
+                node = node.text();
+            }
+
+            document.getElementById("story-text").innerHTML = node.text.replace(/\n/g, "<br>");
+            const choicesContainer = document.getElementById("choices");
+            const endingContainer = document.getElementById("ending");
+            choicesContainer.innerHTML = "";
+            endingContainer.innerText = "";
+
+            if (node.timeLimit) {
+                startTimer(node.timeLimit);
+            } else {
+                clearInterval(timerInterval);
+                document.getElementById("timer").innerText = "";
+            }
+
+            if (node.effects) {
+                updateStats(node.effects);
+            }
+
+            if (node.choices) {
+                node.choices.forEach(choice => {
+                    const button = document.createElement("button");
+                    button.innerText = choice.text;
+                    button.className = "choice-btn";
+                    button.onclick = () => {
+                        clearInterval(timerInterval);
+                        currentNode = choice.next;
+                        updateStats(choice.effects);
+                        displayCurrentNode();
+                    };
+                    choicesContainer.appendChild(button);
+                });
+            } else {
+                clearInterval(timerInterval);
+                endingContainer.innerText = node.ending;
+                const restartButton = document.createElement("button");
+                restartButton.innerText = "Chơi lại từ đầu";
+                restartButton.className = "choice-btn restart-btn";
+                restartButton.onclick = () => {
+                    if (node.ending === "Loop Ending: Tái sinh với ký ức.") {
+                        experience += 10;
+                    }
+                    stats = { health: 100, hunger: 100, thirst: 100, morale: 100 };
+                    inventory = {
+                        wood: 0, stone: 0, vine: 0, leaf: 0, fish: 0, fruit: 0, water: 0, shell: 0,
+                        tools: ["Dao nhỏ", "Đánh lửa", "2m dây thừng"]
+                    };
+                    currentNode = "start";
+                    updateStats();
+                    displayCurrentNode();
+                };
+                choicesContainer.appendChild(restartButton);
+            }
+        }
+
+        window.onload = () => {
+            displayCurrentNode();
+        };
+    </script>
+</body>
+</html>

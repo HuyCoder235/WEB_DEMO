@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Phiêu Lưu</title>
+    <!-- Liên kết file CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>Chọn Trò Chơi Phiêu Lưu</h1>
+
+    <!-- Game List -->
+    <div class="game-list">
+        <div class="game-item" onclick="startGame('game1')">Game 1: Điều Tra Vụ Án</div>
+        <div class="game-item" onclick="startGame('game2')">Game 2: Khám Phá Hành Tinh Lạ</div>
+        <div class="game-item" onclick="startGame('game3')">Game 3: Tìm Kiếm Kho Báu Mất Tích</div>
+        <div class="game-item" onclick="startGame('game4')">Game 4: Sống Sót Trên Hòn Đảo Hoang</div>
+        <div class="game-item" onclick="startGame('game5')">Game 5: Thám Hiểm Động Vật Quái Dị</div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container" id="progress-container" style="display:none;">
+        <div id="progress-bar" class="progress-bar"></div>
+        <div id="percentage" class="percentage">0%</div>
+    </div>
+
+    <!-- Liên kết file JavaScript -->
+    <script src="script.js"></script>
+
+</body>
+</html>

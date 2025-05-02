@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Phiêu Lưu</title>
+    <style>
+        /* Đảm bảo video phủ đầy nền */
+        #background-video {
+            position: fixed; /* Đặt video cố định */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Cắt video nếu cần để phủ đầy màn hình */
+            z-index: -1; /* Đưa video xuống dưới các phần tử khác */
+        }
+
+        /* Thiết lập nền cho trang */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #000; /* Màu nền fallback nếu video không hiển thị */
+            color: rgb(255, 255, 255);
+            text-align: center;
+        }
+
+        /* Thiết kế menu */
+        .menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1; /* Đảm bảo menu nằm trên video */
+        }
+
+        .menu h1 {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .menu button {
+            padding: 15px 30px;
+            font-size: 1.5em;
+            background-color: rgba(255, 0, 0, 0.7);
+            border: none;
+            color: rgb(255, 255, 255);
+            cursor: pointer;
+            margin: 10px;
+            border-radius: 5px;
+        }
+
+        .menu button:hover {
+            background-color: rgba(255, 0, 0, 1);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Video nền -->
+    <video autoplay loop muted id="background-video">
+        <source src="background_video.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <!-- Menu chính -->
+    <div class="menu">
+        <h1>Your Adventure</h1>
+        <button onclick="startGame()">Bắt Đầu</button>
+        <button onclick="showInstructions()">Hướng Dẫn</button>
+        <button onclick="settings()">Cài Đặt</button>
+    </div>
+
+    <script>
+        function startGame() {
+            window.location.href = 'game.html'; // Chuyển đến trang game
+        }
+
+        function showInstructions() {
+            alert('Hướng dẫn: Chọn các lựa chọn trong game để quyết định cốt truyện!');
+        }
+
+        function settings() {
+            alert('Tính năng cài đặt đang phát triển!');
+        }
+    </script>
+
+</body>
+</html>

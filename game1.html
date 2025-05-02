@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thám tử Alex Carter: Vụ án biệt thự Black</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            background-color: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        h1 {
+            text-align: center;
+            color: #ff5555;
+        }
+        .story-text {
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .choice-btn {
+            background-color: #ff5555;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        .choice-btn:hover {
+            background-color: #cc4444;
+        }
+        .ending {
+            font-weight: bold;
+            color: #ffaa00;
+            margin-top: 20px;
+        }
+        .restart-btn {
+            background-color: #55aa55;
+            margin-top: 10px;
+        }
+        .restart-btn:hover {
+            background-color: #448844;
+        }
+        .timer {
+            color: #ffaa00;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🕵️‍♂️ Vụ án biệt thự Black</h1>
+        <div id="timer" class="timer"></div>
+        <div id="story-text" class="story-text"></div>
+        <div id="choices" class="choices"></div>
+        <div id="ending" class="ending"></div>
+    </div>
+
+    <script>
+        const storyNodes = {
+            start: {
+                text: "Bạn là Alex Carter, một thám tử tài ba. Một tối mưa, bạn nhận được cuộc gọi khẩn cấp: Adrian Black, triệu phú công nghệ, bị sát hại tại biệt thự Black. Bạn đến hiện trường với thời gian giới hạn để điều tra trước khi các manh mối biến mất. Hãy hành động nhanh chóng!",
+                timeLimit: 60, // Thời gian giới hạn 60 giây cho nhánh đầu tiên
+                choices: [
+                    { text: "Khám xét hiện trường", next: "investigate_scene" },
+                    { text: "Thẩm vấn Elizabeth Black", next: "interrogate_elizabeth" },
+                    { text: "Nói chuyện với Samuel Reed", next: "talk_to_samuel" },
+                    { text: "Gặp người làm vườn", next: "meet_gardener" },
+                    { text: "Kiểm tra hầm bí mật", next: "check_basement" } // Nhánh mới
+                ]
+            },
+            investigate_scene: {
+                text: "Bạn bước vào phòng khách nơi Adrian bị sát hại. Máu vương vãi khắp sàn, một chiếc hộp kỳ lạ nằm trên bàn với đồng hồ và bức ảnh của Adrian cùng một người phụ nữ bí ẩn. Thời gian đang trôi, bạn phải chọn nhanh!",
+                timeLimit: 45,
+                choices: [
+                    { text: "Khám phá bằng chứng kỳ lạ", next: "explore_evidence" },
+                    { text: "Tham khảo báo cáo của cảnh sát", next: "consult_police" },
+                    { text: "Tìm cuốn nhật ký của Adrian", next: "find_diary" },
+                    { text: "Kiểm tra cửa sổ bị vỡ", next: "check_window" } // Tình huống mới
+                ]
+            },
+            explore_evidence: {
+                text: "Bạn mở chiếc hộp và thấy bức ảnh có dòng chữ 'Sophia - 2019'. Có vẻ cô ấy từng là người quan trọng với Adrian. Bạn nghe tiếng bước chân ngoài hành lang – ai đó đang đến gần!",
+                choices: [
+                    { text: "Theo dõi Sophia", next: "follow_sophia" },
+                    { text: "Đối chất với Elizabeth", next: "confront_elizabeth" },
+                    { text: "Ẩn nấp và quan sát", next: "hide_and_watch" } // Tình huống mới
+                ]
+            },
+            follow_sophia: {
+                text: "Bạn tìm Sophia trong thành phố. Cô ấy kể rằng Adrian từng nợ cô một món tiền lớn và nghi ngờ gia đình anh ta liên quan. Manh mối này dẫn bạn đến một sự thật bất ngờ.",
+                ending: "Happy Ending: Tìm ra thủ phạm trong gia đình, vụ án được giải quyết."
+            },
+            confront_elizabeth: {
+                text: "Elizabeth hoảng loạn khi bạn hỏi về Sophia. Cô ta khai sai và dẫn bạn đến một nghi phạm sai lầm. Vụ án rơi vào ngõ cụt.",
+                ending: "Bad Ending: Bắt nhầm người, vụ án không giải quyết được."
+            },
+            hide_and_watch: {
+                text: "Bạn ẩn sau rèm và thấy Samuel bước vào, lén lấy một vật gì đó từ bàn. Anh ta có vẻ đáng nghi – bạn sẽ làm gì tiếp theo?",
+                choices: [
+                    { text: "Đối chất với Samuel", next: "confront_samuel" },
+                    { text: "Theo dõi Samuel", next: "follow_samuel" }
+                ]
+            },
+            confront_samuel: {
+                text: "Samuel thừa nhận anh ta lấy một chiếc chìa khóa bí mật từ hiện trường. Anh ta nói đó là chìa khóa dẫn đến hầm của Adrian.",
+                choices: [
+                    { text: "Yêu cầu Samuel đưa chìa khóa", next: "demand_key" },
+                    { text: "Tịch thu chìa khóa bằng vũ lực", next: "take_key_force" }
+                ]
+            },
+            demand_key: {
+                text: "Samuel đưa chìa khóa nhưng cảnh báo bạn về nguy hiểm trong hầm. Bạn mở hầm và phát hiện một phòng thí nghiệm kỳ lạ với những thiết bị phát sáng.",
+                choices: [
+                    { text: "Khám phá phòng thí nghiệm", next: "explore_lab" }
+                ]
+            },
+            take_key_force: {
+                text: "Bạn giằng lấy chìa khóa, Samuel chống cự và làm rơi một lọ hóa chất. Khí độc lan ra, bạn ngất đi và không thể tiếp tục.",
+                ending: "Bad Ending: Hít phải khí độc, vụ án dang dở."
+            },
+            explore_lab: {
+                text: "Phòng thí nghiệm chứa các tài liệu về dự án 'LifeLink' – một thí nghiệm liên kết tâm trí. Bạn tìm thấy một thiết bị đang hoạt động, nhưng nó bắt đầu rung chuyển dữ dội.",
+                choices: [
+                    { text: "Tắt thiết bị", next: "shutdown_device" },
+                    { text: "Kích hoạt thiết bị", next: "activate_device" }
+                ]
+            },
+            shutdown_device: {
+                text: "Bạn tắt thiết bị và tìm thấy tài liệu chỉ ra Samuel là người đứng sau dự án. Anh ta bị bắt, vụ án khép lại.",
+                ending: "Happy Ending: Samuel là thủ phạm, vụ án được giải quyết."
+            },
+            activate_device: {
+                text: "Thiết bị mở một cánh cổng không gian. Bạn bị hút vào một chiều không gian khác, không thể quay lại.",
+                ending: "Tâm Linh Ending: Bị mắc kẹt trong chiều không gian khác."
+            },
+            follow_samuel: {
+                text: "Bạn theo Samuel đến một nhà kho bỏ hoang. Anh ta gặp một người lạ mặt và trao đổi một chiếc vali. Bạn có thể can thiệp ngay lập tức hoặc chờ đợi.",
+                choices: [
+                    { text: "Can thiệp ngay", next: "intervene_now" },
+                    { text: "Chờ đợi và quan sát", next: "wait_and_observe" }
+                ]
+            },
+            intervene_now: {
+                text: "Bạn xông vào và phát hiện chiếc vali chứa tiền và tài liệu mật. Samuel thú nhận anh ta bán bí mật của Adrian cho đối thủ.",
+                ending: "Happy Ending: Bắt được Samuel, vụ án được giải quyết."
+            },
+            wait_and_observe: {
+                text: "Bạn chờ đợi, nhưng Samuel phát hiện ra bạn. Anh ta tấn công và bạn bị thương nặng, không thể tiếp tục điều tra.",
+                ending: "Bad Ending: Bị Samuel hạ gục, vụ án thất bại."
+            },
+            consult_police: {
+                text: "Cảnh sát báo cáo rằng có dấu hiệu đột nhập từ bên ngoài, nhưng một số thông tin bị che giấu. Bạn nghi ngờ có nội gián trong lực lượng.",
+                ending: "Unknown Ending: Phát hiện âm mưu lớn hơn, vụ án chưa rõ ràng."
+            },
+            find_diary: {
+                text: "Cuốn nhật ký của Adrian ghi lại những giấc mơ kỳ lạ và một dự án bí mật tên 'LifeLink'. Có vẻ anh ta sợ hãi điều gì đó trước khi chết.",
+                choices: [
+                    { text: "Đọc kỹ nhật ký", next: "read_diary" },
+                    { text: "Đưa nhật ký cho Samuel", next: "give_to_samuel" },
+                    { text: "Tìm kiếm thêm manh mối trong phòng", next: "search_room" } // Tình huống mới
+                ]
+            },
+            read_diary: {
+                text: "Nhật ký kể về một thế giới song song mà Adrian cố gắng tiếp cận. Bạn cảm thấy không gian quanh mình bắt đầu méo mó.",
+                choices: [
+                    { text: "Điều tra thế giới song song", next: "investigate_parallel" },
+                    { text: "Bỏ qua và quay lại hiện trường", next: "investigate_scene" }
+                ]
+            },
+            investigate_parallel: {
+                text: "Bạn tìm thấy một cánh cổng trong biệt thự, bước qua và thấy mình ở một phiên bản khác của thế giới. Không còn đường về.",
+                ending: "Tâm Linh Ending: Sống trong thế giới song song mãi mãi."
+            },
+            give_to_samuel: {
+                text: "Samuel đọc nhật ký và nói rằng Adrian đã mất trí. Anh ta đề nghị hợp tác để ngăn chặn dự án nguy hiểm này.",
+                choices: [
+                    { text: "Hợp tác với Samuel", next: "cooperate_samuel" },
+                    { text: "Từ chối và điều tra một mình", next: "investigate_alone" }
+                ]
+            },
+            cooperate_samuel: {
+                text: "Bạn hợp tác với Samuel, nhưng anh ta phản bội và đẩy bạn vào một cái bẫy trong hầm. Bạn không thể thoát ra.",
+                ending: "Bad Ending: Bị Samuel lừa, vụ án thất bại."
+            },
+            investigate_alone: {
+                text: "Bạn tự điều tra và đối mặt với một thực thể siêu nhiên trong biệt thự. Nó vượt quá sức của bạn.",
+                ending: "Horror Ending: Bị thực thể siêu nhiên tiêu diệt."
+            },
+            search_room: {
+                text: "Bạn tìm thấy một bức thư giấu trong gầm giường, đề cập đến một 'kẻ phản bội trong nội bộ'. Ai đó trong biệt thự đang che giấu sự thật.",
+                choices: [
+                    { text: "Điều tra Elizabeth", next: "interrogate_elizabeth" },
+                    { text: "Điều tra Samuel", next: "talk_to_samuel" },
+                    { text: "Tìm thêm manh mối", next: "find_more_clues" }
+                ]
+            },
+            find_more_clues: {
+                text: "Bạn phát hiện một chiếc điện thoại cũ của Adrian với tin nhắn cuối cùng: 'Hãy cẩn thận với Marcus.' Marcus là ai?",
+                choices: [
+                    { text: "Tìm kiếm thông tin về Marcus", next: "search_marcus" }
+                ]
+            },
+            search_marcus: {
+                text: "Marcus hóa ra là một nhà khoa học từng làm việc với Adrian. Bạn tìm thấy anh ta trong một phòng thí nghiệm bỏ hoang.",
+                choices: [
+                    { text: "Hợp tác với Marcus", next: "cooperate_marcus" },
+                    { text: "Thẩm vấn Marcus", next: "interrogate_marcus" }
+                ]
+            },
+            cooperate_marcus: {
+                text: "Marcus giúp bạn khám phá dự án 'LifeLink', nhưng nó kích hoạt một vụ nổ lớn. Cả hai bị mắc kẹt trong đống đổ nát.",
+                ending: "Bad Ending: Bị mắc kẹt trong vụ nổ, vụ án dang dở."
+            },
+            interrogate_marcus: {
+                text: "Marcus thú nhận anh ta và Samuel đã âm mưu giết Adrian để chiếm dự án. Bạn bắt giữ anh ta và giải quyết vụ án.",
+                ending: "Happy Ending: Bắt được Marcus, vụ án được giải quyết."
+            },
+            check_window: {
+                text: "Cửa sổ vỡ có dấu giày bẩn bên ngoài. Có vẻ kẻ đột nhập đã trèo vào từ đây. Bạn có thể kiểm tra vườn hoặc tìm thêm manh mối trong phòng.",
+                choices: [
+                    { text: "Kiểm tra khu vườn", next: "check_garden" },
+                    { text: "Tìm thêm manh mối trong phòng", next: "search_room" }
+                ]
+            },
+            check_garden: {
+                text: "Trong vườn, bạn tìm thấy một chiếc găng tay rách và một mẩu giấy với mã số: '13-25-8'. Đây có thể là một mật mã.",
+                choices: [
+                    { text: "Giải mã mẩu giấy", next: "decode_paper" },
+                    { text: "Đưa cho cảnh sát phân tích", next: "give_to_police" }
+                ]
+            },
+            decode_paper: {
+                text: "Bạn giải mã và phát hiện '13-25-8' nghĩa là 'MYH' – viết tắt của 'Marcus Youngblood Hayes'. Marcus là nghi phạm mới!",
+                choices: [
+                    { text: "Tìm kiếm Marcus", next: "search_marcus" }
+                ]
+            },
+            give_to_police: {
+                text: "Cảnh sát phân tích mẩu giấy nhưng không tìm ra gì đáng kể. Một số manh mối bị bỏ qua, vụ án rơi vào bế tắc.",
+                ending: "Bad Ending: Vụ án không tiến triển, thất bại."
+            },
+            interrogate_elizabeth: {
+                text: "Elizabeth Black nói cô nghe tiếng động lớn trước khi Adrian chết. Lời khai của cô đầy mâu thuẫn, và cô ta trông rất lo lắng.",
+                timeLimit: 30,
+                choices: [
+                    { text: "Ép cô ấy khai thật", next: "force_confession" },
+                    { text: "Hỏi về Sophia", next: "ask_sophia" },
+                    { text: "Theo dõi Elizabeth", next: "follow_elizabeth" },
+                    { text: "Kiểm tra điện thoại của cô ấy", next: "check_phone" } // Tình huống mới
+                ]
+            },
+            force_confession: {
+                text: "Elizabeth thú nhận cô là thủ phạm, nhưng bất ngờ tấn công bạn bằng một con dao giấu sẵn. Bạn không kịp phản ứng.",
+                ending: "Horror Ending: Bị Elizabeth giết, vụ án thất bại."
+            },
+            ask_sophia: {
+                text: "Elizabeth nói Sophia là bạn cũ của Adrian, nhưng bạn nghi ngờ cô ta che giấu điều gì đó lớn hơn.",
+                choices: [
+                    { text: "Điều tra Sophia", next: "investigate_sophia" },
+                    { text: "Quay lại hiện trường", next: "investigate_scene" }
+                ]
+            },
+            investigate_sophia: {
+                text: "Sophia kể về một nghi lễ siêu nhiên mà Adrian từng tham gia. Bạn bị cuốn vào thế giới bên kia khi cố tìm hiểu thêm.",
+                ending: "Tâm Linh Ending: Bị mắc kẹt trong thế giới siêu nhiên."
+            },
+            follow_elizabeth: {
+                text: "Bạn theo dõi Elizabeth và thấy cô gặp một người đàn ông bí ẩn – Marcus. Họ đang bàn bạc gì đó rất căng thẳng.",
+                choices: [
+                    { text: "Tiếp cận Marcus", next: "approach_marcus" },
+                    { text: "Tiếp tục theo dõi", next: "continue_following" }
+                ]
+            },
+            approach_marcus: {
+                text: "Marcus tiết lộ anh ta từng làm việc với Adrian trên dự án 'LifeLink'. Anh ta đề nghị hợp tác để khám phá sự thật.",
+                choices: [
+                    { text: "Hợp tác với Marcus", next: "cooperate_marcus" },
+                    { text: "Từ chối và điều tra một mình", next: "investigate_alone" }
+                ]
+            },
+            continue_following: {
+                text: "Elizabeth và Marcus rời đi, để lại một chiếc túi. Bạn mở ra và thấy tài liệu về 'LifeLink' cùng một thiết bị lạ.",
+                choices: [
+                    { text: "Kiểm tra thiết bị", next: "check_device" },
+                    { text: "Đọc tài liệu", next: "read_documents" }
+                ]
+            },
+            check_device: {
+                text: "Bạn kích hoạt thiết bị, và nó phát ra âm thanh kỳ lạ, thu hút một thực thể siêu nhiên. Bạn không thể thoát khỏi nó.",
+                ending: "Horror Ending: Bị thực thể siêu nhiên tấn công."
+            },
+            read_documents: {
+                text: "Tài liệu chỉ ra Elizabeth và Marcus âm mưu giết Adrian. Bạn có bằng chứng để bắt giữ cả hai.",
+                ending: "Happy Ending: Bắt được Elizabeth và Marcus, vụ án được giải quyết."
+            },
+            check_phone: {
+                text: "Điện thoại của Elizabeth có tin nhắn từ một số lạ: 'Hủy dự án ngay, hoặc sẽ có thêm người chết.' Ai đứng sau tin nhắn này?",
+                choices: [
+                    { text: "Truy tìm số điện thoại", next: "trace_number" },
+                    { text: "Hỏi Elizabeth về tin nhắn", next: "ask_elizabeth_message" }
+                ]
+            },
+            trace_number: {
+                text: "Số điện thoại dẫn bạn đến một công ty đối thủ của Adrian. Họ thuê sát thủ giết anh ta để chiếm dự án.",
+                ending: "Twist Ending: Công ty đối thủ là thủ phạm, vụ án có bước ngoặt."
+            },
+            ask_elizabeth_message: {
+                text: "Elizabeth nói đó là lời đe dọa từ Samuel. Bạn có thể tin cô ấy hoặc tiếp tục điều tra Samuel.",
+                choices: [
+                    { text: "Tin Elizabeth và bắt Samuel", next: "arrest_samuel_elizabeth" },
+                    { text: "Điều tra Samuel thêm", next: "talk_to_samuel" }
+                ]
+            },
+            arrest_samuel_elizabeth: {
+                text: "Bạn bắt Samuel dựa trên lời Elizabeth, nhưng hóa ra cô ấy đã dựng chuyện. Samuel vô tội, vụ án thất bại.",
+                ending: "Bad Ending: Bắt nhầm người, vụ án không giải quyết được."
+            },
+            talk_to_samuel: {
+                text: "Samuel Reed nói Adrian đang làm một dự án nguy hiểm tên 'LifeLink'. Anh ta có vẻ biết nhiều hơn những gì anh ta tiết lộ.",
+                choices: [
+                    { text: "Thẩm vấn về dự án", next: "interrogate_project" },
+                    { text: "Tìm tài liệu của Adrian", next: "discover_documents" },
+                    { text: "Hỏi về Elizabeth", next: "ask_about_elizabeth" },
+                    { text: "Quan sát hành vi của Samuel", next: "observe_samuel" } // Tình huống mới
+                ]
+            },
+            interrogate_project: {
+                text: "Samuel kể về 'LifeLink' và nói anh ta từng cố ngăn Adrian. Bạn thuyết phục anh ta hợp tác, và cả hai giải cứu Elizabeth khỏi quá khứ của cô ấy.",
+                ending: "Angel Ending: Elizabeth được cứu, vụ án kết thúc yên bình."
+            },
+            discover_documents: {
+                text: "Bạn tìm thấy tài liệu, nhưng Samuel lấy cắp chúng và biến mất. Không có bằng chứng, bạn thất bại.",
+                ending: "Bad Ending: Samuel trốn thoát, vụ án dang dở."
+            },
+            ask_about_elizabeth: {
+                text: "Samuel nói Elizabeth và Adrian cãi nhau về tiền bạc trước khi anh ta chết. Có vẻ cô ấy có động cơ rõ ràng.",
+                choices: [
+                    { text: "Điều tra tài chính", next: "investigate_finances" },
+                    { text: "Thẩm vấn Elizabeth lại", next: "interrogate_elizabeth" }
+                ]
+            },
+            investigate_finances: {
+                text: "Bạn phát hiện Adrian chuyển tiền cho một tài khoản bí ẩn – thuộc về Marcus. Anh ta có thể là chìa khóa của vụ án.",
+                choices: [
+                    { text: "Tìm Marcus", next: "search_marcus" },
+                    { text: "Đối chất với Elizabeth", next: "confront_elizabeth_finances" }
+                ]
+            },
+            confront_elizabeth_finances: {
+                text: "Elizabeth nói Marcus thao túng cô để lấy tiền. Một thế lực thứ ba xuất hiện trong vụ án này.",
+                ending: "Twist Ending: Thế lực thứ ba lộ diện, vụ án có bước ngoặt."
+            },
+            observe_samuel: {
+                text: "Samuel tỏ ra lo lắng và liên tục nhìn ra cửa sổ. Bạn nghi ngờ anh ta đang chờ ai đó hoặc che giấu điều gì.",
+                choices: [
+                    { text: "Theo dõi Samuel", next: "follow_samuel" },
+                    { text: "Tìm kiếm đồ đạc của anh ta", next: "search_samuel_belongings" }
+                ]
+            },
+            search_samuel_belongings: {
+                text: "Bạn tìm thấy một bức thư trong túi Samuel, viết rằng: 'Gặp tôi ở nhà kho lúc nửa đêm.' Ai đã gửi thư này?",
+                choices: [
+                    { text: "Đến nhà kho", next: "go_to_warehouse" }
+                ]
+            },
+            go_to_warehouse: {
+                text: "Tại nhà kho, bạn thấy Samuel gặp Marcus. Họ đang bàn kế hoạch phá hủy bằng chứng. Bạn có thể hành động ngay.",
+                choices: [
+                    { text: "Bắt giữ cả hai", next: "arrest_both" },
+                    { text: "Chụp ảnh bằng chứng", next: "take_photos" }
+                ]
+            },
+            arrest_both: {
+                text: "Bạn bắt giữ Samuel và Marcus. Họ thú nhận âm mưu giết Adrian để chiếm dự án 'LifeLink'. Vụ án khép lại.",
+                ending: "Happy Ending: Bắt được Samuel và Marcus, vụ án được giải quyết."
+            },
+            take_photos: {
+                text: "Bạn chụp ảnh, nhưng bị Samuel phát hiện. Anh ta phá hủy bằng chứng trước khi bạn kịp hành động.",
+                ending: "Bad Ending: Mất bằng chứng, vụ án thất bại."
+            },
+            meet_gardener: {
+                text: "Người làm vườn kể anh ta thấy một người lạ mặc áo đen vào đêm Adrian chết. Ông ta run rẩy khi nhớ lại chi tiết này.",
+                choices: [
+                    { text: "Hỏi thêm về người lạ", next: "ask_about_stranger" },
+                    { text: "Kiểm tra camera an ninh", next: "check_camera" },
+                    { text: "Kiểm tra công cụ làm vườn", next: "check_tools" } // Tình huống mới
+                ]
+            },
+            ask_about_stranger: {
+                text: "Người làm vườn nói người lạ đội mũ trùm và mang theo một chiếc túi lớn. Có vẻ anh ta rất vội vã.",
+                choices: [
+                    { text: "Tìm kiếm người lạ", next: "search_stranger" },
+                    { text: "Báo cáo cho cảnh sát", next: "report_to_police" }
+                ]
+            },
+            search_stranger: {
+                text: "Bạn tìm thấy người lạ – một nhà báo tên Leo. Anh ta đang điều tra Adrian và có thông tin về dự án 'LifeLink'.",
+                choices: [
+                    { text: "Hợp tác với Leo", next: "cooperate_leo" }
+                ]
+            },
+            cooperate_leo: {
+                text: "Leo dẫn bạn đến một phòng thí nghiệm bỏ hoang, nơi bạn tìm thấy bằng chứng kết tội Marcus. Vụ án được giải quyết.",
+                ending: "Happy Ending: Bắt được Marcus, vụ án khép lại."
+            },
+            report_to_police: {
+                text: "Cảnh sát không tìm thấy người lạ và cho rằng đó chỉ là lời nói dối. Vụ án không tiến triển.",
+                ending: "Bad Ending: Vụ án bế tắc, thất bại."
+            },
+            check_camera: {
+                text: "Camera ghi lại bóng đen di chuyển trong vườn. Bạn có thể phân tích kỹ hơn hoặc hỏi người làm vườn thêm.",
+                choices: [
+                    { text: "Phân tích hình ảnh", next: "analyze_image" },
+                    { text: "Hỏi người làm vườn", next: "ask_gardener_again" }
+                ]
+            },
+            analyze_image: {
+                text: "Hình ảnh cho thấy bóng đen là một người mặc đồ cảnh sát. Có thể có nội gián trong lực lượng chức năng.",
+                ending: "Unknown Ending: Phát hiện âm mưu của cảnh sát, vụ án chưa rõ ràng."
+            },
+            ask_gardener_again: {
+                text: "Người làm vườn nói bóng đen mang theo một chiếc xẻng – có thể hung khí đã bị giấu trong vườn.",
+                choices: [
+                    { text: "Tìm kiếm trong vườn", next: "search_garden" }
+                ]
+            },
+            search_garden: {
+                text: "Bạn đào bới và tìm thấy một chiếc xẻng dính máu. Phân tích cho thấy đó là hung khí giết Adrian, và dấu vân tay thuộc về Samuel.",
+                ending: "Happy Ending: Tìm hung khí, bắt được Samuel, vụ án được giải quyết."
+            },
+            check_tools: {
+                text: "Bạn kiểm tra công cụ làm vườn và thấy một chiếc cuốc có vết máu khô. Có thể đây là hung khí.",
+                choices: [
+                    { text: "Mang đi phân tích", next: "analyze_tool" },
+                    { text: "Hỏi người làm vườn về công cụ", next: "ask_gardener_tool" }
+                ]
+            },
+            analyze_tool: {
+                text: "Phân tích cho thấy máu trên cuốc là của Adrian, và dấu vân tay thuộc về Elizabeth. Cô ta là thủ phạm.",
+                ending: "Happy Ending: Bắt được Elizabeth, vụ án được giải quyết."
+            },
+            ask_gardener_tool: {
+                text: "Người làm vườn nói ông ta thấy Elizabeth cầm chiếc cuốc vào đêm đó, nhưng không dám nói vì sợ bị trả thù.",
+                choices: [
+                    { text: "Đối chất với Elizabeth", next: "confront_elizabeth_tool" }
+                ]
+            },
+            confront_elizabeth_tool: {
+                text: "Elizabeth thú nhận cô giết Adrian trong lúc cãi vã. Cô ta cầu xin bạn tha thứ, nhưng bạn phải đưa cô ta ra công lý.",
+                ending: "Happy Ending: Elizabeth bị bắt, vụ án khép lại."
+            },
+            check_basement: {
+                text: "Bạn xuống hầm và phát hiện một căn phòng khóa chặt với mùi hóa chất nồng nặc. Có vẻ đây là nơi Adrian làm việc bí mật.",
+                choices: [
+                    { text: "Phá cửa vào", next: "break_door" },
+                    { text: "Tìm chìa khóa", next: "find_key" },
+                    { text: "Gọi hỗ trợ từ cảnh sát", next: "call_police_support" } // Tình huống mới
+                ]
+            },
+            break_door: {
+                text: "Bạn phá cửa và thấy một phòng thí nghiệm với thiết bị 'LifeLink'. Một vụ nổ xảy ra do áp suất, và bạn không thể thoát ra.",
+                ending: "Bad Ending: Chết trong vụ nổ, vụ án dang dở."
+            },
+            find_key: {
+                text: "Bạn tìm thấy chìa khóa trong ngăn bàn của Adrian. Mở cửa, bạn thấy tài liệu chứng minh Samuel là kẻ chủ mưu.",
+                ending: "Happy Ending: Bắt được Samuel, vụ án được giải quyết."
+            },
+            call_police_support: {
+                text: "Cảnh sát đến và mở cửa hầm, nhưng một trong số họ phá hủy bằng chứng quan trọng. Có vẻ họ bị mua chuộc.",
+                ending: "Unknown Ending: Bằng chứng bị phá hủy, vụ án rơi vào bí ẩn."
+            }
+        };
+
+        let currentNode = "start";
+        let timeLeft = 0;
+        let timerInterval = null;
+
+        function startTimer(limit) {
+            if (timerInterval) clearInterval(timerInterval);
+            timeLeft = limit;
+            const timerElement = document.getElementById("timer");
+            timerElement.innerText = `Thời gian còn lại: ${timeLeft} giây`;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.innerText = `Thời gian còn lại: ${timeLeft} giây`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    currentNode = "time_out";
+                    displayCurrentNode();
+                }
+            }, 1000);
+        }
+
+        function displayCurrentNode() {
+            const node = storyNodes[currentNode] || {
+                text: "Hết thời gian! Một số manh mối đã biến mất, và vụ án rơi vào bế tắc.",
+                ending: "Bad Ending: Hết thời gian, vụ án không được giải quyết."
+            };
+            document.getElementById("story-text").innerText = node.text;
+            const choicesContainer = document.getElementById("choices");
+            const endingContainer = document.getElementById("ending");
+            choicesContainer.innerHTML = "";
+            endingContainer.innerText = "";
+
+            if (node.timeLimit) {
+                startTimer(node.timeLimit);
+            } else {
+                clearInterval(timerInterval);
+                document.getElementById("timer").innerText = "";
+            }
+
+            if (node.choices) {
+                node.choices.forEach(choice => {
+                    const button = document.createElement("button");
+                    button.innerText = choice.text;
+                    button.className = "choice-btn";
+                    button.onclick = () => {
+                        clearInterval(timerInterval);
+                        currentNode = choice.next;
+                        displayCurrentNode();
+                    };
+                    choicesContainer.appendChild(button);
+                });
+            } else {
+                clearInterval(timerInterval);
+                endingContainer.innerText = node.ending;
+                const restartButton = document.createElement("button");
+                restartButton.innerText = "Chơi lại từ đầu";
+                restartButton.className = "choice-btn restart-btn";
+                restartButton.onclick = () => {
+                    currentNode = "start";
+                    displayCurrentNode();
+                };
+                choicesContainer.appendChild(restartButton);
+            }
+        }
+
+        window.onload = () => {
+            displayCurrentNode();
+        };
+    </script>
+</body>
+</html>

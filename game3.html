@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tìm Kiếm Kho Báu Mất Tích</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif; /* Thay Georgia bằng Arial, hỗ trợ tiếng Việt tốt hơn */
+            background-color: #1a2a1a;
+            color: #e0e0c0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            background-color: #2a3a2a;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 100, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #ffd700;
+            text-shadow: 0 0 5px #ffd700;
+            font-family: 'Times New Roman', serif; /* Font cho tiêu đề */
+        }
+        .story-text {
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        .dialogue {
+            background-color: #3a4a3a;
+            padding: 10px;
+            border-left: 4px solid #ffd700;
+            margin: 10px 0;
+        }
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .choice-btn {
+            background-color: #ffd700;
+            color: #1a2a1a;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        .choice-btn:hover {
+            background-color: #ccaa00;
+        }
+        .ending {
+            font-weight: bold;
+            color: #ff5555;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .restart-btn {
+            background-color: #55aa55;
+            margin-top: 10px;
+        }
+        .restart-btn:hover {
+            background-color: #448844;
+        }
+        .timer {
+            color: #ff5555;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧭 Tìm Kiếm Kho Báu Mất Tích</h1>
+        <div id="timer" class="timer"></div>
+        <div id="story-text" class="story-text"></div>
+        <div id="choices" class="choices"></div>
+        <div id="ending" class="ending"></div>
+    </div>
+
+    <script>
+        const storyNodes = {
+            start: {
+                text: "Bạn là Lena Valen, một nhà khảo cổ học trẻ, đứng trong căn gác bụi bặm của ông mình – nhà thám hiểm huyền thoại Marcus Valen. Trong một chiếc rương cũ, bạn tìm thấy nhật ký của ông, với dòng chữ run rẩy: 'Kho Báu của Vua Azran nằm trên đảo vô danh, nhưng lời nguyền sẽ thử thách kẻ tìm kiếm.' Một bản đồ vẽ tay chỉ đường ra biển. Bạn cảm nhận được định mệnh đang gọi, nhưng hành trình này sẽ đầy rủi ro. Bạn chuẩn bị lên đường.",
+                timeLimit: 60,
+                choices: [
+                    { text: "Thuê tàu và đi một mình", next: "go_alone" },
+                    { text: "Thuê thêm Jasper và Mira", next: "hire_team" },
+                    { text: "Kiểm tra nhật ký thêm", next: "check_diary" }
+                ]
+            },
+            check_diary: {
+                text: "Bạn đọc kỹ nhật ký. Ông viết: 'Đảo Azran ẩn chứa lời nguyền cổ. Chỉ kẻ hiểu nghi thức mới sống sót.' Một trang ghi chú về ba cánh cổng: Mặt Trời, Bóng Tối, Biển Cạn. Bạn ghi nhớ thông tin này và chuẩn bị lên đường.",
+                timeLimit: 45,
+                choices: [
+                    { text: "Thuê tàu và đi một mình", next: "go_alone" },
+                    { text: "Thuê thêm Jasper và Mira", next: "hire_team" }
+                ]
+            },
+            go_alone: {
+                text: "Bạn thuê một chiếc tàu nhỏ và ra khơi một mình. Giữa biển, một cơn bão dữ dội ập đến. Sóng gào thét, xé toạc một phần bản đồ. Bạn vật lộn với bánh lái, cuối cùng cập bến đảo Azran, nhưng mệt mỏi và thiếu manh mối.",
+                choices: [
+                    { text: "Dựng trại gần bờ biển", next: "camp_beach" },
+                    { text: "Dựng trại sâu trong rừng", next: "camp_forest" },
+                    { text: "Khám phá xác tàu đắm gần bờ", next: "explore_wreck" }
+                ]
+            },
+            hire_team: {
+                text: "Bạn thuê Jasper – một thợ máy vui tính nhưng hơi bất cẩn, và Mira – một nhà sinh tồn lạnh lùng, luôn cảnh giác. Cả ba lên tàu, vượt qua biển cả an toàn nhờ kỹ năng của Mira. Khi cập bến đảo Azran, Jasper cười lớn: 'Chỗ này trông như thiên đường!' Nhưng Mira thì thầm với bạn: 'Tôi không tin Jasper... anh ta che giấu gì đó.'",
+                choices: [
+                    { text: "Dựng trại gần bờ biển", next: "camp_beach_team" },
+                    { text: "Dựng trại sâu trong rừng", next: "camp_forest_team" },
+                    { text: "Quan sát Jasper", next: "watch_jasper" }
+                ]
+            },
+            watch_jasper: {
+                text: "Bạn để ý Jasper. Anh ta thường xuyên kiểm tra một mẩu giấy trong túi, tránh ánh mắt của bạn và Mira. Khi bạn hỏi, anh ta cười gượng: 'Chỉ là... danh sách đồ thôi!' Bạn nghi ngờ, nhưng chưa có bằng chứng.",
+                choices: [
+                    { text: "Dựng trại gần bờ biển", next: "camp_beach_team" },
+                    { text: "Dựng trại sâu trong rừng", next: "camp_forest_team" },
+                    { text: "Đối chất với Jasper", next: "confront_jasper_early" }
+                ]
+            },
+            confront_jasper_early: {
+                text: "Bạn ép Jasper đưa mẩu giấy. Hóa ra là một bản sao bản đồ của bạn, nhưng có thêm ký hiệu lạ. Jasper thú nhận: 'Tôi... chỉ muốn chắc chắn chúng ta tìm được kho báu!' Mira gầm gừ: 'Hắn không đáng tin.' Bạn phải quyết định ngay.",
+                timeLimit: 30,
+                choices: [
+                    { text: "Giữ Jasper trong nhóm", next: "camp_forest_team" },
+                    { text: "Đuổi Jasper đi", next: "camp_beach" }
+                ]
+            },
+            explore_wreck: {
+                text: "Bạn lặn xuống xác tàu đắm gần bờ. Bên trong, bạn tìm thấy một mảnh ngọc khắc ký hiệu giống trong nhật ký của ông. Đột nhiên, một dòng nước xoáy kéo bạn xuống. Bạn thoát ra được, nhưng cảm giác có gì đó đang theo dõi từ dưới nước.",
+                choices: [
+                    { text: "Dựng trại gần bờ biển", next: "camp_beach" },
+                    { text: "Dựng trại sâu trong rừng", next: "camp_forest" }
+                ]
+            },
+            camp_beach: {
+                text: "Bạn dựng trại gần bờ biển, nơi sóng vỗ nhẹ và gió mát lành. Nhưng đêm đến, một nhóm kẻ lạ mặc áo choàng tấn công trại. Bạn nghe tiếng hét: 'Không để kẻ xâm nhập chạm vào kho báu!' Bạn chỉ có vài giây để phản ứng.",
+                timeLimit: 30,
+                choices: [
+                    { text: "Chống trả", next: "fight_strangers" },
+                    { text: "Chạy vào rừng", next: "camp_forest" },
+                    { text: "Trốn dưới xác tàu đắm", next: "hide_wreck" }
+                ]
+            },
+            camp_beach_team: {
+                text: "Cả nhóm dựng trại gần bờ biển. Jasper kể chuyện cười, nhưng Mira vẫn cảnh giác. Đêm đến, kẻ lạ tấn công. Jasper hét: 'Chúng muốn gì ở chúng ta?' Mira rút dao: 'Lena, quyết định đi!'",
+                timeLimit: 30,
+                choices: [
+                    { text: "Chống trả", next: "fight_strangers_team" },
+                    { text: "Chạy vào rừng", next: "camp_forest_team" },
+                    { text: "Trốn dưới xác tàu đắm", next: "hide_wreck_team" }
+                ]
+            },
+            fight_strangers: {
+                text: "Bạn chống trả, nhưng kẻ lạ quá đông. Một nhát dao xuyên qua vai bạn, và bóng tối nuốt chửng mọi thứ.",
+                ending: "Horror Ending: Bị kẻ lạ tiêu diệt, kho báu mãi là bí ẩn."
+            },
+            fight_strangers_team: {
+                text: "Cả nhóm chống trả. Mira hạ gục hai kẻ, nhưng Jasper bị thương nặng. Kẻ lạ rút lui, để lại một mảnh ngọc khắc ký hiệu. Mira thở hổn hển: 'Chúng là ai? Sao biết chúng ta ở đây?'",
+                choices: [
+                    { text: "Chăm sóc Jasper", next: "tend_jasper" },
+                    { text: "Đi vào rừng tìm tàn tích", next: "camp_forest_team" }
+                ]
+            },
+            hide_wreck: {
+                text: "Bạn trốn dưới xác tàu đắm, nín thở khi kẻ lạ lục soát bờ biển. Khi chúng rời đi, bạn tìm thấy một lối vào bí mật dẫn đến tàn tích cổ.",
+                choices: [
+                    { text: "Đi vào tàn tích", next: "ancient_ruins" }
+                ]
+            },
+            hide_wreck_team: {
+                text: "Cả nhóm trốn dưới xác tàu. Jasper hoảng loạn, suýt làm lộ vị trí, nhưng Mira bịt miệng anh ta. Kẻ lạ rời đi, và bạn phát hiện một lối vào tàn tích cổ.",
+                choices: [
+                    { text: "Đi vào tàn tích", next: "ancient_ruins_team" }
+                ]
+            },
+            tend_jasper: {
+                text: "Bạn chăm sóc Jasper, băng bó vết thương. Anh ta thì thầm: 'Cảm ơn, Lena. Tôi... tôi sẽ không làm bạn thất vọng.' Mira vẫn nghi ngờ, nhưng cả nhóm quyết định đi tìm tàn tích.",
+                choices: [
+                    { text: "Đi vào rừng", next: "camp_forest_team" }
+                ]
+            },
+            camp_forest: {
+                text: "Bạn dựng trại sâu trong rừng, nơi cây cối rậm rạp và tiếng côn trùng râm ran. Đêm đó, bạn phát hiện một tàn tích cổ với bản khắc: 'Ba cánh cổng dẫn đến kho báu, nhưng chỉ một con đường là chân lý.' Một cơn lũ bất ngờ ập đến, bạn phải hành động nhanh!",
+                timeLimit: 45,
+                choices: [
+                    { text: "Chạy lên cao", next: "ancient_ruins" },
+                    { text: "Trốn vào tàn tích", next: "enter_ruins_solo" },
+                    { text: "Tìm nơi trú ẩn tự nhiên", next: "natural_shelter" }
+                ]
+            },
+            camp_forest_team: {
+                text: "Cả nhóm dựng trại trong rừng. Mira phát hiện một tàn tích cổ với bản khắc: 'Ba cánh cổng: Mặt Trời, Bóng Tối, Biển Cạn. Chọn sai, và lời nguyền sẽ nuốt chửng.' Jasper lo lắng: 'Nghe như cái bẫy chết tiệt!' Một cơn lũ ập đến, buộc nhóm phải hành động.",
+                timeLimit: 45,
+                choices: [
+                    { text: "Chạy lên cao", next: "ancient_ruins_team" },
+                    { text: "Trốn vào tàn tích", next: "enter_ruins_team" },
+                    { text: "Tìm nơi trú ẩn tự nhiên", next: "natural_shelter_team" }
+                ]
+            },
+            natural_shelter: {
+                text: "Bạn tìm một hang động để trú lũ, nhưng bên trong đầy rắn độc. Một con cắn bạn trước khi bạn kịp chạy thoát.",
+                ending: "Horror Ending: Chết vì nọc độc, kho báu mãi là giấc mơ."
+            },
+            natural_shelter_team: {
+                text: "Nhóm tìm một hang động, nhưng Mira phát hiện rắn độc. Jasper hoảng loạn, làm sập lối vào. Cả nhóm bị mắc kẹt, và bóng tối nuốt chửng bạn.",
+                ending: "Horror Ending: Bị mắc kẹt trong hang, không ai sống sót."
+            },
+            enter_ruins_solo: {
+                text: "Bạn trốn vào tàn tích, tránh được lũ. Trước mặt là ba cánh cổng đá khổng lồ, mỗi cánh khắc biểu tượng: Mặt Trời rực rỡ, Bóng Tối âm u, Biển Cạn lấp lánh. Nhật ký của ông vang vọng trong đầu bạn: 'Chọn cẩn thận, Lena.'",
+                choices: [
+                    { text: "Vào cổng Mặt Trời", next: "sun_gate" },
+                    { text: "Vào cổng Bóng Tối", next: "shadow_gate" },
+                    { text: "Vào cổng Biển Cạn", next: "tide_gate" },
+                    { text: "Kiểm tra tàn tích thêm", next: "explore_ruins_solo" }
+                ]
+            },
+            explore_ruins_solo: {
+                text: "Bạn khám phá tàn tích và tìm thấy một ngôi đền nhỏ với bức tượng Vua Azran. Một giọng nói vang lên trong đầu: 'Kẻ tìm kiếm, chứng minh lòng trung thực.' Một câu đố hiện lên trên tường.",
+                choices: [
+                    { text: "Giải câu đố", next: "solve_temple_puzzle" },
+                    { text: "Bỏ qua và chọn cổng", next: "enter_ruins_solo" }
+                ]
+            },
+            solve_temple_puzzle: {
+                text: "Bạn giải đúng câu đố, và bức tượng mở ra một lối đi bí mật. Bên trong, bạn tìm thấy một mảnh ngọc dẫn đường, giúp bạn an toàn qua các cánh cổng.",
+                choices: [
+                    { text: "Vào cổng Mặt Trời", next: "sun_gate_safe" },
+                    { text: "Vào cổng Biển Cạn", next: "tide_gate_safe" }
+                ]
+            },
+            ancient_ruins: {
+                text: "Bạn chạy lên cao, đến một tàn tích cổ với ba cánh cổng đá: Mặt Trời chói chang, Bóng Tối lạnh lẽo, Biển Cạn lung linh. Bạn cảm nhận sức mạnh kỳ lạ từ chúng, như thể chúng đang thử thách bạn.",
+                choices: [
+                    { text: "Vào cổng Mặt Trời", next: "sun_gate" },
+                    { text: "Vào cổng Bóng Tối", next: "shadow_gate" },
+                    { text: "Vào cổng Biển Cạn", next: "tide_gate" }
+                ]
+            },
+            ancient_ruins_team: {
+                text: "Nhóm chạy lên cao, đến một tàn tích cổ. Ba cánh cổng đá hiện ra: Mặt Trời, Bóng Tối, Biển Cạn. Jasper nói: 'Cổng nào cũng nguy hiểm, chọn đi!' Mira thì thầm: 'Tôi cảm thấy... có gì đó đang theo dõi chúng ta.'",
+                choices: [
+                    { text: "Vào cổng Mặt Trời", next: "sun_gate_team" },
+                    { text: "Vào cổng Bóng Tối", next: "shadow_gate_team" },
+                    { text: "Vào cổng Biển Cạn", next: "tide_gate_team" },
+                    { text: "Kiểm tra tàn tích thêm", next: "explore_ruins_team" }
+                ]
+            },
+            explore_ruins_team: {
+                text: "Nhóm khám phá tàn tích và tìm thấy một ngôi đền nhỏ. Một giọng nói vang lên: 'Chứng minh lòng trung thực.' Jasper cười khẩy: 'Lại trò đố vui à?' Mira cảnh báo: 'Đừng coi thường.' Bạn phải giải câu đố trên tường.",
+                choices: [
+                    { text: "Giải câu đố", next: "solve_temple_puzzle_team" },
+                    { text: "Bỏ qua và chọn cổng", next: "ancient_ruins_team" }
+                ]
+            },
+            solve_temple_puzzle_team: {
+                text: "Bạn và Mira giải đúng câu đố. Jasper miễn cưỡng giúp. Bức tượng mở lối đi bí mật, và bạn tìm thấy mảnh ngọc dẫn đường. Mira nói: 'Cái này sẽ giúp chúng ta an toàn.'",
+                choices: [
+                    { text: "Vào cổng Mặt Trời", next: "sun_gate_safe_team" },
+                    { text: "Vào cổng Biển Cạn", next: "tide_gate_safe_team" }
+                ]
+            },
+            sun_gate: {
+                text: "Cổng Mặt Trời dẫn bạn vào một mê cung ánh sáng chói lòa. Những tia sáng phản chiếu tạo thành bẫy chết người. Bạn nghe tiếng kêu rít từ xa – có gì đó đang đến gần!",
+                timeLimit: 45,
+                choices: [
+                    { text: "Chạy qua mê cung", next: "run_maze" },
+                    { text: "Tìm lối tắt", next: "find_shortcut" },
+                    { text: "Sử dụng gương để phản chiếu ánh sáng", next: "use_mirror" }
+                ]
+            },
+            sun_gate_team: {
+                text: "Nhóm bước vào mê cung ánh sáng. Jasper hoảng loạn: 'Mắt tôi không chịu nổi!' Mira bình tĩnh: 'Tìm cách phản chiếu ánh sáng, Lena!' Tiếng kêu rít vang lên, ngày càng gần.",
+                timeLimit: 45,
+                choices: [
+                    { text: "Chạy qua mê cung", next: "run_maze_team" },
+                    { text: "Tìm lối tắt", next: "find_shortcut_team" },
+                    { text: "Sử dụng gương để phản chiếu ánh sáng", next: "use_mirror_team" }
+                ]
+            },
+            sun_gate_safe: {
+                text: "Mảnh ngọc dẫn bạn qua mê cung ánh sáng an toàn. Bạn đến một căn phòng với lối vào kho báu, nhưng một bóng người xuất hiện – Jasper, với nụ cười nguy hiểm.",
+                choices: [
+                    { text: "Đối đầu với Jasper", next: "confront_betrayer_solo" },
+                    { text: "Thuyết phục Jasper hợp tác", next: "persuade_betrayer_solo" }
+                ]
+            },
+            sun_gate_safe_team: {
+                text: "Mảnh ngọc giúp nhóm vượt qua mê cung. Nhưng Jasper đột nhiên chĩa dao vào bạn: 'Kho báu là của tôi, Lena!' Mira gầm gừ: 'Hắn là hậu duệ của kẻ phản bội Azran!'",
+                choices: [
+                    { text: "Đối đầu với Jasper", next: "confront_betrayer" },
+                    { text: "Thuyết phục Jasper hợp tác", next: "persuade_betrayer" },
+                    { text: "Chạy tìm lối khác", next: "escape_betrayer" }
+                ]
+            },
+            run_maze: {
+                text: "Bạn chạy qua mê cung, nhưng ánh sáng chói làm bạn mất phương hướng. Một tia sáng bắn ra, thiêu rụi bạn trong chớp mắt.",
+                ending: "Horror Ending: Bị mê cung ánh sáng thiêu rụi."
+            },
+            run_maze_team: {
+                text: "Nhóm chạy qua mê cung, nhưng ánh sáng làm Jasper ngã. Một tia sáng thiêu rụi anh ta, và bạn với Mira không thể cứu kịp.",
+                ending: "Horror Ending: Jasper chết, nhóm thất bại trong mê cung."
+            },
+            find_shortcut: {
+                text: "Bạn tìm lối tắt, nhưng nó dẫn đến một thế giới ảo ảnh, nơi bạn thấy ông mình: 'Lena, quay lại, đây không phải đường!' Bạn mất phương hướng và lạc vào không gian lạ.",
+                ending: "Unknown Ending: Lạc trong thế giới ảo ảnh, không bao giờ trở về."
+            },
+            find_shortcut_team: {
+                text: "Nhóm tìm lối tắt, nhưng rơi vào thế giới ảo ảnh. Jasper bỏ chạy, và bạn với Mira lạc vào một chiều không gian khác, không lối thoát.",
+                ending: "Unknown Ending: Mắc kẹt trong chiều không gian ảo ảnh."
+            },
+            use_mirror: {
+                text: "Bạn dùng mảnh kính từ túi để phản chiếu ánh sáng, vô hiệu hóa bẫy. Mê cung mở ra lối vào kho báu, nhưng một bóng người xuất hiện – kẻ phản bội.",
+                choices: [
+                    { text: "Đối đầu", next: "confront_betrayer_solo" },
+                    { text: "Thuyết phục hợp tác", next: "persuade_betrayer_solo" }
+                ]
+            },
+            use_mirror_team: {
+                text: "Mira dùng dao phản chiếu ánh sáng, vô hiệu hóa bẫy. Nhưng Jasper chĩa dao vào bạn: 'Kho báu là của tôi!' Mira hét: 'Hắn phản bội chúng ta!'",
+                choices: [
+                    { text: "Đối đầu với Jasper", next: "confront_betrayer" },
+                    { text: "Thuyết phục Jasper hợp tác", next: "persuade_betrayer" },
+                    { text: "Chạy tìm lối khác", next: "escape_betrayer" }
+                ]
+            },
+            shadow_gate: {
+                text: "Cổng Bóng Tối dẫn vào một hang động ngầm, nơi bóng tối nuốt chửng ánh sáng. Tiếng gầm rú vang lên – một đàn quái vật đang săn bạn. Bạn chỉ có vài giây để hành động!",
+                timeLimit: 30,
+                choices: [
+                    { text: "Chạy thoát", next: "run_from_monsters" },
+                    { text: "Ẩn nấp", next: "hide_from_monsters" },
+                    { text: "Dùng pháo sáng", next: "use_flare" }
+                ]
+            },
+            shadow_gate_team: {
+                text: "Nhóm bước vào hang động tối tăm. Jasper run rẩy: 'Cái quái gì thế này?' Mira thì thầm: 'Chúng đang đến!' Tiếng gầm của quái vật vang lên, gần hơn bao giờ hết.",
+                timeLimit: 30,
+                choices: [
+                    { text: "Chạy thoát", next: "run_from_monsters_team" },
+                    { text: "Ẩn nấp", next: "hide_from_monsters_team" },
+                    { text: "Dùng pháo sáng", next: "use_flare_team" }
+                ]
+            },
+            run_from_monsters: {
+                text: "Bạn chạy, nhưng quái vật đuổi kịp. Chúng xé toạc bạn trong bóng tối, và tiếng hét của bạn vang vọng mãi mãi.",
+                ending: "Horror Ending: Bị quái vật ngầm nuốt chửng."
+            },
+            run_from_monsters_team: {
+                text: "Nhóm chạy, nhưng Jasper vấp ngã. Quái vật kéo anh ta vào bóng tối, và bạn với Mira không thể cứu. Mira khóc: 'Chúng ta không nên vào đây!'",
+                ending: "Horror Ending: Jasper chết, nhóm thất bại trong bóng tối."
+            },
+            hide_from_monsters: {
+                text: "Bạn ẩn nấp sau tảng đá, nhưng hơi thở của quái vật phả vào gáy bạn. Một móng vuốt xuyên qua ngực bạn, và mọi thứ chìm vào bóng tối.",
+                ending: "Horror Ending: Bị quái vật phát hiện và tiêu diệt."
+            },
+            hide_from_monsters_team: {
+                text: "Nhóm ẩn nấp, nhưng Jasper hoảng loạn làm lộ vị trí. Quái vật tấn công, và cả nhóm bị nuốt chửng trong bóng tối.",
+                ending: "Horror Ending: Cả nhóm bị quái vật tiêu diệt."
+            },
+            use_flare: {
+                text: "Bạn bắn pháo sáng, ánh sáng làm quái vật rút lui. Bạn tìm thấy lối ra, dẫn đến kho báu, nhưng một bóng người chặn đường – kẻ phản bội.",
+                choices: [
+                    { text: "Đối đầu", next: "confront_betrayer_solo" },
+                    { text: "Thuyết phục hợp tác", next: "persuade_betrayer_solo" }
+                ]
+            },
+            use_flare_team: {
+                text: "Mira bắn pháo sáng, xua đuổi quái vật. Nhóm tìm thấy lối ra, nhưng Jasper chĩa dao vào bạn: 'Kho báu thuộc về tôi, Lena!'",
+                choices: [
+                    { text: "Đối đầu với Jasper", next: "confront_betrayer" },
+                    { text: "Thuyết phục Jasper hợp tác", next: "persuade_betrayer" },
+                    { text: "Chạy tìm lối khác", next: "escape_betrayer" }
+                ]
+            },
+            tide_gate: {
+                text: "Cổng Biển Cạn đưa bạn vào một thế giới ảo ảnh, nơi biển cả khô cạn và những bóng ma trôi nổi. Một giọng nói vang lên: 'Đối mặt với nỗi sợ của ngươi.' Bạn thấy hình ảnh ông mình, nhưng ông đang khóc.",
+                choices: [
+                    { text: "Đối mặt với ảo ảnh", next: "face_illusion" },
+                    { text: "Chạy khỏi ảo ảnh", next: "run_from_illusion" },
+                    { text: "Tìm kiếm manh mối", next: "search_illusion" }
+                ]
+            },
+            tide_gate_team: {
+                text: "Nhóm bước vào thế giới ảo ảnh. Jasper hoảng loạn: 'Đây là ma quỷ gì vậy?' Mira nắm tay bạn: 'Lena, đừng để nó đánh lừa!' Một giọng nói vang lên: 'Đối mặt với nỗi sợ.' Hình ảnh ông bạn hiện ra, khóc lóc.",
+                choices: [
+                    { text: "Đối mặt với ảo ảnh", next: "face_illusion_team" },
+                    { text: "Chạy khỏi ảo ảnh", next: "run_from_illusion_team" },
+                    { text: "Tìm kiếm manh mối", next: "search_illusion_team" }
+                ]
+            },
+            tide_gate_safe: {
+                text: "Mảnh ngọc dẫn bạn qua thế giới ảo ảnh an toàn. Bạn đến phòng kho báu, nhưng một bóng người chặn đường – Jasper, với ánh mắt tham lam.",
+                choices: [
+                    { text: "Đối đầu với Jasper", next: "confront_betrayer_solo" },
+                    { text: "Thuyết phục Jasper hợp tác", next: "persuade_betrayer_solo" }
+                ]
+            },
+            tide_gate_safe_team: {
+                text: "Mảnh ngọc giúp nhóm vượt qua ảo ảnh. Nhưng Jasper chĩa dao vào bạn: 'Tôi là hậu duệ của kẻ phản bội Azran, kho báu là của tôi!' Mira sẵn sàng chiến đấu.",
+                choices: [
+                    { text: "Đối đầu với Jasper", next: "confront_betrayer" },
+                    { text: "Thuyết phục Jasper hợp tác", next: "persuade_betrayer" },
+                    { text: "Chạy tìm lối khác", next: "escape_betrayer" }
+                ]
+            },
+            face_illusion: {
+                text: "Bạn đối mặt với ảo ảnh, vượt qua nỗi sợ. Lối ra mở ra, dẫn đến kho báu. Nhưng một bóng người chặn đường – kẻ phản bội.",
+                choices: [
+                    { text: "Đối đầu", next: "confront_betrayer_solo" },
+                    { text: "Thuyết phục hợp tác", next: "persuade_betrayer_solo" }
+                ]
+            },
+            face_illusion_team: {
+                text: "Nhóm đối mặt với ảo ảnh. Mira vượt qua, nhưng Jasper sụp đổ, tiết lộ hắn là hậu duệ kẻ phản bội. Hắn chĩa dao vào bạn: 'Kho báu là của tôi!'",
+                choices: [
+                    { text: "Đối đầu với Jasper", next: "confront_betrayer" },
+                    { text: "Thuyết phục Jasper hợp tác", next: "persuade_betrayer" },
+                    { text: "Chạy tìm lối khác", next: "escape_betrayer" }
+                ]
+            },
+            run_from_illusion: {
+                text: "Bạn chạy khỏi ảo ảnh, nhưng rơi vào một chiều không gian khác. Biển cả nuốt chửng bạn, và bạn lạc mãi mãi trong hư vô.",
+                ending: "Unknown Ending: Mắc kẹt trong chiều không gian ảo ảnh."
+            },
+            run_from_illusion_team: {
+                text: "Nhóm chạy, nhưng rơi vào chiều không gian khác. Jasper bỏ rơi bạn và Mira, và cả hai lạc trong hư vô vĩnh viễn.",
+                ending: "Unknown Ending: Cả nhóm mắc kẹt trong hư vô."
+            },
+            search_illusion: {
+                text: "Bạn tìm kiếm manh mối và thấy một bia đá: 'Chỉ kẻ hiểu nghi thức mới xứng đáng.' Bạn nhớ lời ông và đến được phòng kho báu.",
+                choices: [
+                    { text: "Tiến vào phòng kho báu", next: "treasure_room_solo" }
+                ]
+            },
+            search_illusion_team: {
+                text: "Nhóm tìm thấy bia đá: 'Chỉ kẻ hiểu nghi thức mới xứng đáng.' Mira gật đầu: 'Nhật ký của ông bạn có thể cứu chúng ta.' Nhưng Jasper lén rút dao.",
+                choices: [
+                    { text: "Đối đầu với Jasper", next: "confront_betrayer" },
+                    { text: "Tiến vào phòng kho báu", next: "treasure_room" }
+                ]
+            },
+            confront_betrayer_solo: {
+                text: "Bạn đối đầu kẻ phản bội – Jasper, người tự xưng là hậu duệ kẻ phản bội Azran. Bạn đánh bại hắn sau một trận chiến khốc liệt, nhưng bị thương nặng. Bạn lê bước đến phòng kho báu.",
+                choices: [
+                    { text: "Tiến vào phòng kho báu", next: "treasure_room_solo" }
+                ]
+            },
+            confront_betrayer: {
+                text: "Bạn và Mira đối đầu Jasper. Hắn chiến đấu dữ dội, nhưng Mira hạ gục hắn. Jasper cười điên dại trước khi ngã: 'Lời nguyền sẽ lấy mạng các người!' Nhóm lê bước đến phòng kho báu.",
+                choices: [
+                    { text: "Tiến vào phòng kho báu", next: "treasure_room" }
+                ]
+            },
+            persuade_betrayer_solo: {
+                text: "Bạn thuyết phục Jasper hợp tác, nhắc hắn về giấc mơ của ông bạn. Hắn miễn cưỡng đồng ý, nhưng ánh mắt vẫn đầy tham lam. Cả hai đến phòng kho báu.",
+                choices: [
+                    { text: "Tiến vào phòng kho báu", next: "treasure_room_betrayer" }
+                ]
+            },
+            persuade_betrayer: {
+                text: "Bạn thuyết phục Jasper, và Mira miễn cưỡng đồng ý. Jasper nói: 'Được thôi, nhưng tôi muốn phần của mình.' Nhóm đến phòng kho báu, nhưng bạn cảm thấy bất an.",
+                choices: [
+                    { text: "Tiến vào phòng kho báu", next: "treasure_room_betrayer" }
+                ]
+            },
+            escape_betrayer: {
+                text: "Bạn và Mira chạy thoát Jasper, tìm một lối khác vào kho báu. Nhưng Jasper đuổi theo, và trong lúc hỗn loạn, hắn đẩy bạn vào một hầm cổ. Bạn bị giam vĩnh viễn.",
+                ending: "Bad Ending: Bị giam trong hầm cổ, kho báu mãi xa vời."
+            },
+            treasure_room_solo: {
+                text: "Bạn bước vào phòng kho báu, nơi viên ngọc của Vua Azran lấp lánh trên bệ đá. Không khí nặng nề, như có ai đang theo dõi. Nhật ký của ông vang vọng: 'Lena, hãy làm đúng nghi thức.' Bạn đứng trước lựa chọn cuối cùng.",
+                timeLimit: 60,
+                choices: [
+                    { text: "Chạm vào kho báu", next: "touch_treasure" },
+                    { text: "Đọc bia đá cổ", next: "read_stone" },
+                    { text: "Thực hiện nghi thức", next: "perform_ritual" },
+                    { text: "Phá hủy kho báu", next: "destroy_treasure" }
+                ]
+            },
+            treasure_room: {
+                text: "Nhóm bước vào phòng kho báu. Viên ngọc của Vua Azran tỏa sáng rực rỡ. Mira thì thầm: 'Cẩn thận, Lena, tôi cảm nhận được lời nguyền.' Jasper, nếu còn sống, ánh mắt đầy tham lam. Bạn phải quyết định ngay.",
+                timeLimit: 60,
+                choices: [
+                    { text: "Chạm vào kho báu", next: "touch_treasure" },
+                    { text: "Đọc bia đá cổ", next: "read_stone" },
+                    { text: "Thực hiện nghi thức", next: "perform_ritual" },
+                    { text: "Phá hủy kho báu", next: "destroy_treasure" }
+                ]
+            },
+            treasure_room_betrayer: {
+                text: "Bạn và Jasper bước vào phòng kho báu. Viên ngọc lấp lánh, nhưng Jasper bất ngờ đẩy bạn ra: 'Kho báu là của tôi!' Hắn lao đến viên ngọc, kích hoạt lời nguyền. Bạn có cơ hội cuối cùng để hành động.",
+                timeLimit: 30,
+                choices: [
+                    { text: "Ngăn Jasper", next: "stop_jasper" },
+                    { text: "Thực hiện nghi thức", next: "perform_ritual" },
+                    { text: "Chạy thoát", next: "escape_treasure" }
+                ]
+            },
+            touch_treasure: {
+                text: "Bạn chạm vào viên ngọc, và một luồng năng lượng đen nuốt chửng bạn. Lời nguyền của Vua Azran sống lại, và bạn biến mất trong ánh sáng ma quái.",
+                ending: "Bad Ending: Lời nguyền nuốt chửng, bạn tan biến mãi mãi."
+            },
+            read_stone: {
+                text: "Bia đá ghi: 'Chỉ nghi thức cổ mới phá lời nguyền. Sai một bước, thời gian sẽ trói buộc ngươi.' Bạn nhớ nhật ký của ông, nhưng không chắc chi tiết.",
+                choices: [
+                    { text: "Thực hiện nghi thức", next: "perform_ritual" },
+                    { text: "Chạm vào kho báu", next: "touch_treasure" },
+                    { text: "Tìm thêm manh mối", next: "search_clues" }
+                ]
+            },
+            search_clues: {
+                text: "Bạn tìm thấy một bức phù điêu ẩn, mô tả nghi thức chi tiết: 'Hiến dâng lòng trung thực, thắp ba ngọn lửa.' Bạn tự tin hơn, nhưng thời gian sắp hết.",
+                choices: [
+                    { text: "Thực hiện nghi thức", next: "perform_ritual_correct" }
+                ]
+            },
+            perform_ritual: {
+                text: "Bạn thực hiện nghi thức, nhưng quên một bước quan trọng. Không gian méo mó, và bạn bị kéo vào một vòng lặp thời gian, sống lại hành trình mãi mãi.",
+                ending: "Twist Ending: Kẹt trong vòng lặp thời gian cổ đại."
+            },
+            perform_ritual_correct: {
+                text: "Bạn thắp ba ngọn lửa, hiến dâng lòng trung thực như nhật ký hướng dẫn. Viên ngọc sáng rực, lời nguyền tan biến. Bạn mang kho báu về, tiếp nối di sản của ông.",
+                ending: "Happy Ending: Phá lời nguyền, trở thành huyền thoại."
+            },
+            destroy_treasure: {
+                text: "Bạn đập vỡ viên ngọc, phá hủy kho báu. Lời nguyền tan biến, nhưng bạn trở về tay trắng. Thế giới không bao giờ biết đến kho báu, nhưng bạn sống sót.",
+                ending: "Secret Ending: Hy sinh kho báu, bảo vệ thế giới khỏi lời nguyền."
+            },
+            stop_jasper: {
+                text: "Bạn ngăn Jasper, nhưng hắn kích hoạt lời nguyền. Cả hai bị nuốt vào bóng tối, và kho báu chìm vào hư vô.",
+                ending: "Bad Ending: Lời nguyền nuốt chửng, không ai sống sót."
+            },
+            escape_treasure: {
+                text: "Bạn chạy thoát, bỏ lại Jasper với kho báu. Lời nguyền nuốt chửng hắn, và bạn trở về một mình, nhưng bị truy nã vì đã chiếm kho báu trong mắt thế giới.",
+                ending: "Treasure Hunter’s Legacy: Sống sót, nhưng bị truy nã mãi mãi."
+            }
+        };
+
+        let currentNode = "start";
+        let timeLeft = 0;
+        let timerInterval = null;
+
+        function startTimer(limit) {
+            if (timerInterval) clearInterval(timerInterval);
+            timeLeft = limit;
+            const timerElement = document.getElementById("timer");
+            timerElement.innerText = `Thời gian còn lại: ${timeLeft} giây`;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.innerText = `Thời gian còn lại: ${timeLeft} giây`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    currentNode = "time_out";
+                    displayCurrentNode();
+                }
+            }, 1000);
+        }
+
+        function displayCurrentNode() {
+            const node = storyNodes[currentNode] || {
+                text: "Hết thời gian! Bạn bị mắc kẹt trên đảo, và kho báu mãi là bí ẩn.",
+                ending: "Bad Ending: Hết thời gian, hành trình thất bại."
+            };
+            document.getElementById("story-text").innerHTML = node.text.replace(/\n/g, "<br>");
+            const choicesContainer = document.getElementById("choices");
+            const endingContainer = document.getElementById("ending");
+            choicesContainer.innerHTML = "";
+            endingContainer.innerText = "";
+
+            if (node.timeLimit) {
+                startTimer(node.timeLimit);
+            } else {
+                clearInterval(timerInterval);
+                document.getElementById("timer").innerText = "";
+            }
+
+            if (node.choices) {
+                node.choices.forEach(choice => {
+                    const button = document.createElement("button");
+                    button.innerText = choice.text;
+                    button.className = "choice-btn";
+                    button.onclick = () => {
+                        clearInterval(timerInterval);
+                        currentNode = choice.next;
+                        displayCurrentNode();
+                    };
+                    choicesContainer.appendChild(button);
+                });
+            } else {
+                clearInterval(timerInterval);
+                endingContainer.innerText = node.ending;
+                const restartButton = document.createElement("button");
+                restartButton.innerText = "Chơi lại từ đầu";
+                restartButton.className = "choice-btn restart-btn";
+                restartButton.onclick = () => {
+                    currentNode = "start";
+                    displayCurrentNode();
+                };
+                choicesContainer.appendChild(restartButton);
+            }
+        }
+
+        window.onload = () => {
+            displayCurrentNode();
+        };
+    </script>
+</body>
+</html>

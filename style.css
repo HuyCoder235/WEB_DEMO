@@ -1,0 +1,66 @@
+/* style.css */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #333;
+    color: white;
+    text-align: center;
+    position: relative;
+}
+.game-list {
+    margin-top: 50px;
+}
+.game-item {
+    margin: 10px 0;
+    padding: 20px;
+    background-color: rgba(255, 0, 0, 0.7);
+    cursor: pointer;
+    border-radius: 10px;
+    font-size: 1.5em;
+    transition: background-color 0.3s;
+}
+.game-item:hover {
+    background-color: rgba(255, 0, 0, 1);
+}
+/* Thanh tiến độ dọc ở góc phải */
+.progress-container {
+    position: absolute;
+    top: 20%;
+    right: 10px;
+    width: 20px;
+    height: 200px;
+    background-color: #444;
+    border-radius: 10px;
+}
+.progress-bar {
+    height: 0;
+    background-color: #4CAF50;
+    border-radius: 10px;
+    transition: height 0.3s ease;
+}
+.percentage {
+    position: absolute;
+    top: 0;
+    right: 100%;
+    padding-right: 10px;
+    font-size: 1.2em;
+    color: white;
+    margin-top: -30px;
+}
+.choices {
+    margin-top: 20px;
+}
+.choices button {
+    padding: 15px;
+    font-size: 1.2em;
+    background-color: rgba(255, 0, 0, 0.7);
+    color: white;
+    border: none;
+    margin: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+.choices button:hover {
+    background-color: rgba(255, 0, 0, 1);
+}
