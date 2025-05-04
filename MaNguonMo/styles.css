@@ -1,0 +1,158 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    height: 100vh;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #3333FF, #3333CC, #333399); 
+    overflow: hidden;
+    background-image: url('simulater.jpg');
+    background-size: cover;
+    background-position: center; 
+    background-repeat: no-repeat;
+}
+
+.statusBar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    z-index: 5;
+}
+
+.statusBar .logo {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    width: 40px;
+    height: 40px;
+    background-image: url('https://example.com/logo.png');
+    background-size: cover;
+}
+
+.statusBar ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.statusBar ul li {
+    margin: 0 15px;
+}
+
+.statusBar ul li a {
+    text-decoration: none;
+    color: white;
+    font-size: 18px;
+    padding: 10px;
+    transition: color 0.3s, transform 0.3s;
+}
+
+.statusBar ul li a.active {
+    color: #00ffff;
+}
+
+.statusBar ul li a:hover {
+    color: #00ffff;
+    transform: scale(1.1);
+}
+
+.statusBar ul li:hover ~ li a.active{
+    color: white;
+}
+
+.card-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    z-index: 3;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+}
+
+.card {
+    height: 240px;
+    width: 180px;
+    background: #222222;
+    border-radius: 10px;
+    text-align: center;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.card_img {
+    height: 60px;
+    width: 60px;
+    border: 2px solid var(--primary-color);
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto;
+    transform: translateY(10px);
+    transition: 0.5s;
+}
+
+.card h2 {
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+.card p {
+    font-size: 12px;
+    color: var(--primary-color);
+    margin-top: 5px;
+}
+
+.card_social {
+    margin: 10px 0;
+}
+
+.card_social a i {
+    font-size: 16px;
+    color: white;
+    margin: 10px 8px;
+}
+
+.card_social a i:hover {
+    color: #FF6600;
+}
+
+.card button {
+    width: 100px;
+    height: 30px;
+    font-size: 12px;
+    border: 1px solid var(--primary-color);
+    color: white;
+    border-radius: 8px;
+    background: transparent;
+    transition: 0.5s;
+    margin-top: 5px;
+}
+
+.card button:hover {
+    background: #FF6600;
+}
+
+.card_img:hover {
+    width: 100%;
+    height: 100%;
+    border-radius: unset;
+    transform: unset;
+    border: none;
+}
